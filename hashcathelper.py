@@ -3,12 +3,22 @@
 """
 hashcathelper
 
-Wrapper for hashcat which helps you choose suitable wordlists and rules.
+Wrapper for hashcat which helps you crack hashes in the hashdump format.
+
+First, it bruteforces all LM hashes and uses the results to crack the
+corresponding NT hashes. Then, a large wordlist (Crackstation) is used
+together with a large ruleset (OneRule) to crack all remaining NT hashes.
+
+The hashdump format is the one which is used by secretsdump or Meterpreter's
+hashdump function.
 """
+
+# Idea for development: Support other hash formats and choose a suitable
+# wordlist and ruleset based on how long the attack is supposed to run as
+# well as the cracking power of the local machine.
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -19,12 +29,10 @@ __version__ = '0.1'
 # These are specific to our environment on hashcat01. Should this script be
 # published, these variables need to be determined somehow dynamically or
 # read from a config file.
-HASHCAT_PATH = '/home/cracker/hashcat/hashcat-latest'
+HASHCAT_BIN_PATH = '/home/cracker/hashcat/hashcat-latest'
 WORDLISTS_PATH = '/home/cracker/00_Wortlisten'
 CRACKSTATION = os.path.join(WORDLISTS_PATH, 'crackstation.txt')
 RULES_PATH = '/home/cracker/hashcat/hashcat-6.2.1/rules'
-#TEMP_PATH = tempfile.TemporaryDirectory().name
-TEMP_PATH = './temp'
 
 HASH_SPEED = 60000
 r"""
@@ -34,6 +42,12 @@ Unit: MH/s (Megahashes per second for MD5).
 Can be measured with ``hashcat -b -m 0``.
 """
 # End of environment-specific code
+
+# Create object, then call name() to avoid it going out of scope and cleanin
+# up prematurely
+TEMP_DIR = tempfile.TemporaryDirectory()
+TEMP_PATH = TEMP_DIR.name
+
 
 # Format: (name, speed factor)
 HASH_TYPES = {
@@ -370,7 +384,7 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
     """
 
     base_command = [
-        HASHCAT_PATH,
+        HASHCAT_BIN_PATH,
         hashfile,
         '--username',
         '-m', str(hashtype),
@@ -382,8 +396,10 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
         if ruleset:
             command = command + ['-r', ruleset]
     else:
-        command = command + ['-a', '3', '-i', '?a?a?a?a?a?a?a', '--increment-min', '1', '--increment-max', '7']
         # Attack mode brute force, all combinations of 7 character passwords
+        # (This assumes cracking LM hashes)
+        command = command + ['-a', '3', '-i', '?a?a?a?a?a?a?a',
+                             '--increment-min', '1', '--increment-max', '7']
 
     p = subprocess.Popen(
         command,
@@ -403,23 +419,13 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
         stderr=subprocess.PIPE,
     )
     passwords, _ = p.communicate()
+
     result = tempfile.NamedTemporaryFile(delete=False, dir=TEMP_PATH)
     for p in passwords.splitlines():
+        # Remove username and write rest of the line to the result file
         result.write(b':'.join(p.split(b':')[1:]) + b'\n')
     result.close()
     return result.name
-
-
-def determine_hashtype():
-    pass
-
-
-def find_ruleset():
-    pass
-
-
-def choose_wordlists():
-    pass
 
 
 def crack_pwdump(hashfile, extra_words=[]):
@@ -442,7 +448,6 @@ def crack_pwdump(hashfile, extra_words=[]):
         hashtype=3000,
     )
 
-    # NT_RULESET = create_nt_lm_toggle_rule()
     NT_RULESET = os.path.join(RULES_PATH, 'toggles-lm-ntlm.rule')
     nt_result = hashcat(
         hashfile,
@@ -461,80 +466,19 @@ def crack_pwdump(hashfile, extra_words=[]):
     return final_result
 
 
-def create_nt_lm_toggle_rule():
-    """
-    Create a rule that converts passwords from LM hashes to potential
-    passwords.
-
-    LM hashes lead to all upper case passwords. We need to toggle all
-    combinations of all letters to get the actual passwords. John has the nt
-    rule, but the Hashcat rule engine is less powerful. This function
-    creates the rule set and writes it to a tempfile (>200kb).
-
-    Returns: File name of the rule set.
-    """
-    # Uses functions by Didier Stevens
-    # Source code put in public domain by Didier Stevens,
-    # no Copyright
-    rule = GenerateHashcatToggleRules(15)
-    with tempfile.NamedTemporaryFile(
-        delete=False,
-        mode='w',
-        dir=TEMP_PATH,
-    ) as f:
-        f.write(rule)
-    return f.name
-
-
-def TogglesPlusOne(toggles, max):
-    result = []
-    for toggle in toggles:
-        for i in range(toggle[-1] + 1, max):
-            result.append(toggle + [i])
-    return result
-
-
-def GeneratePrintableToggle(toggle):
-    return ''.join(['T%X' % i for i in toggle])
-
-
-def GenerateHashcatToggleRules(maxsize):
-    result = ':'
-    toggles = [[i] for i in range(0, 15)]
-    while toggles != []:
-        for toggle in toggles:
-            result +=  '\n' + GeneratePrintableToggle(toggle)
-        if len(toggles[0]) >= maxsize:
-            break
-        toggles = TogglesPlusOne(toggles, 15)
-    return result
-
-
 def create_report(hashfile, passwords):
     pass
-
-
-def delete_tempdir():
-    try:
-        # shutil.rmtree(TEMP_PATH)
-        pass
-    except Exception as e:
-        print("Error while deleting temp directory: %s" % str(e))
 
 
 def main():
     args = parse_args()
 
     try:
-        result = crack_pwdump(args.hashfile)
+        #  result = crack_pwdump(args.hashfile)
+        result = ''
         create_report(args.hashfile, result)
     finally:
-        delete_tempdir()
-
-    #  hashtype = determine_hashtype(args.hashfile)
-    #  ruleset = find_ruleset()
-    #  wordlists = choose_wordlists()
-    #  hashcat(args.hashfile, hashtype, ruleset, wordlists)
+        TEMP_DIR.cleanup()
 
 
 if __name__ == "__main__":
