@@ -19,10 +19,12 @@ __version__ = '0.1'
 # These are specific to our environment on hashcat01. Should this script be
 # published, these variables need to be determined somehow dynamically or
 # read from a config file.
-HASHCAT_PATH = '/usr/local/bin/hashcat'
-WORDLISTS_PATH = '/home/cracker/00_Wordlists'
-RULES_PATH = '/home/cracker/hashcat/hashcat-5.1.0/rules'
-TEMP_PATH = tempfile.TemporaryDirectory()
+HASHCAT_PATH = '/home/cracker/hashcat/hashcat-latest'
+WORDLISTS_PATH = '/home/cracker/00_Wortlisten'
+CRACKSTATION = os.path.join(WORDLISTS_PATH, 'crackstation.txt')
+RULES_PATH = '/home/cracker/hashcat/hashcat-6.2.1/rules'
+#TEMP_PATH = tempfile.TemporaryDirectory().name
+TEMP_PATH = './temp'
 
 HASH_SPEED = 60000
 r"""
@@ -373,32 +375,38 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
         '--username',
         '-m', str(hashtype),
     ]
+    command = base_command + ['--outfile-autohex-disable']
     if wordlists:
-        command = base_command + ['-a', '0'] + wordlists
+        command = command + ['-a', '0'] + wordlists
         # Attack mode wordlist
         if ruleset:
-            command = base_command + ['-r', ruleset]
+            command = command + ['-r', ruleset]
     else:
-        command = base_command + ['-a', '3']
-        # Attack mode incremental
+        command = command + ['-a', '3', '-i', '?a?a?a?a?a?a?a', '--increment-min', '1', '--increment-max', '7']
+        # Attack mode brute force, all combinations of 7 character passwords
 
-    subprocess.check_call(
+    p = subprocess.Popen(
         command,
         stdout=sys.stdout,
         stderr=subprocess.STDOUT,
     )
+    p.communicate()
 
     # Retrieve result
     show_command = base_command + ['--show']
     if pwonly:
         show_command += ['--outfile-format', '2']
 
-    result = tempfile.NamedTemporaryFile(delete=False, dir=TEMP_PATH)
-    subprocess.check_call(
-        base_command,
-        stdout=result,
+    p = subprocess.Popen(
+        show_command,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+    passwords, _ = p.communicate()
+    result = tempfile.NamedTemporaryFile(delete=False, dir=TEMP_PATH)
+    for p in passwords.splitlines():
+        result.write(b':'.join(p.split(b':')[1:]) + b'\n')
+    result.close()
     return result.name
 
 
@@ -414,7 +422,7 @@ def choose_wordlists():
     pass
 
 
-def crack_pwdump(hashfile, wordlists=[]):
+def crack_pwdump(hashfile, extra_words=[]):
     """
     Crack the hashes in a pwdump file.
 
@@ -432,16 +440,15 @@ def crack_pwdump(hashfile, wordlists=[]):
     lm_result = hashcat(
         hashfile,
         hashtype=3000,
-        pwonly=True,
     )
 
-    NT_RULESET = create_nt_lm_toggle_rule()
+    # NT_RULESET = create_nt_lm_toggle_rule()
+    NT_RULESET = os.path.join(RULES_PATH, 'toggles-lm-ntlm.rule')
     nt_result = hashcat(
         hashfile,
         hashtype=1000,
         ruleset=NT_RULESET,
         wordlists=[lm_result],
-        pwonly=True,
     )
 
     ONE_RULE = os.path.join(RULES_PATH, 'OneRule.rule')
@@ -449,8 +456,7 @@ def crack_pwdump(hashfile, wordlists=[]):
         hashfile,
         hashtype=1000,
         ruleset=ONE_RULE,
-        wordlists=[nt_result]+wordlists,
-        pwonly=False,
+        wordlists=[nt_result, CRACKSTATION],
     )
     return final_result
 
@@ -477,7 +483,7 @@ def create_nt_lm_toggle_rule():
         dir=TEMP_PATH,
     ) as f:
         f.write(rule)
-        return f.name
+    return f.name
 
 
 def TogglesPlusOne(toggles, max):
@@ -497,30 +503,31 @@ def GenerateHashcatToggleRules(maxsize):
     toggles = [[i] for i in range(0, 15)]
     while toggles != []:
         for toggle in toggles:
-            result.append(GeneratePrintableToggle(toggle))
+            result +=  '\n' + GeneratePrintableToggle(toggle)
         if len(toggles[0]) >= maxsize:
             break
         toggles = TogglesPlusOne(toggles, 15)
     return result
 
 
+def create_report(hashfile, passwords):
+    pass
+
+
 def delete_tempdir():
-    shutil.rmtree(TEMP_PATH)
+    try:
+        # shutil.rmtree(TEMP_PATH)
+        pass
+    except Exception as e:
+        print("Error while deleting temp directory: %s" % str(e))
 
 
 def main():
     args = parse_args()
 
     try:
-        temp_wordlist = ''
-        wordlists = [
-            temp_wordlist,
-            os.path.join(WORDLISTS_PATH, 'crackstation-human-only.txt'),
-        ]
-        crack_pwdump(
-            args.hashfile,
-            wordlists=wordlists,
-        )
+        result = crack_pwdump(args.hashfile)
+        create_report(args.hashfile, result)
     finally:
         delete_tempdir()
 
