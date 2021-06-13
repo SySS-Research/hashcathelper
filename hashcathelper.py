@@ -1,23 +1,10 @@
 #!/usr/bin/env python3
 # Adrian Vollmer, SySS GmbH, 2021
-"""
-hashcathelper
 
-Wrapper for hashcat which helps you crack hashes in the hashdump format.
-
-First, it bruteforces all LM hashes and uses the results to crack the
-corresponding NT hashes. Then, a large wordlist (Crackstation) is used
-together with a large ruleset (OneRule) to crack all remaining NT hashes.
-
-The hashdump format is the one which is used by secretsdump or Meterpreter's
-hashdump function.
-"""
-
-# Idea for development: Support other hash formats and choose a suitable
-# wordlist and ruleset based on how long the attack is supposed to run as
-# well as the cracking power of the local machine.
 
 import argparse
+import configparser
+import collections
 import os
 import subprocess
 import sys
@@ -26,28 +13,7 @@ import tempfile
 __version__ = '0.1'
 
 
-# These are specific to our environment on hashcat01. Should this script be
-# published, these variables need to be determined somehow dynamically or
-# read from a config file.
-HASHCAT_BIN_PATH = '/home/cracker/hashcat/hashcat-latest'
-WORDLISTS_PATH = '/home/cracker/00_Wortlisten'
-CRACKSTATION = os.path.join(WORDLISTS_PATH, 'crackstation.txt')
-RULES_PATH = '/home/cracker/hashcat/hashcat-6.2.1/rules'
-
-HASH_SPEED = 60000
-r"""
-This value characterizes the power of the machine.
-Unit: MH/s (Megahashes per second for MD5).
-
-Can be measured with ``hashcat -b -m 0``.
-"""
-# End of environment-specific code
-
-# Create object, then call name() to avoid it going out of scope and cleanin
-# up prematurely
-TEMP_DIR = tempfile.TemporaryDirectory()
-TEMP_PATH = TEMP_DIR.name
-
+NT_RULESET = os.path.join(__file__, 'toggles-lm-ntlm.rule')
 
 # Format: (name, speed factor)
 HASH_TYPES = {
@@ -364,6 +330,14 @@ def parse_args():
     )
 
     parser.add_argument(
+        '-c', '--config',
+        type=str,
+        help="path to config file; if empty we will try ./hashcathelper.conf"
+        " and ${XDG_CONFIG_HOME:~}/hashcathelper/hashcathelper.conf in that"
+        " order",
+    )
+
+    parser.add_argument(
         dest='hashfile',
         help="path to the file containing the hashes",
     )
@@ -376,7 +350,25 @@ def parse_args():
     return parser.parse_args()
 
 
-def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
+def parse_config(path):
+    config_parser = configparser.ConfigParser()
+    if not path:
+        path = 'hashcathelper.conf'
+        #  if not os.path.exists(path):
+        #      path = xdg.something TODO
+    config_parser.read(path)
+    global config
+    attrs = 'rule wordlist hashcat_bin hash_speed'.split()
+    for a in attrs:
+        assert config_parser['DEFAULT'], 'Attribute undefined: ' + a
+    Config = collections.namedtuple('Config', attrs)
+    config = Config(
+        *[config_parser['DEFAULT'].get(a) for a in attrs]
+    )
+
+
+def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True,
+            directory='.'):
     """
     Run hashcat as a subprocess
 
@@ -384,7 +376,7 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
     """
 
     base_command = [
-        HASHCAT_BIN_PATH,
+        config.hashcat_bin,
         hashfile,
         '--username',
         '-m', str(hashtype),
@@ -410,8 +402,7 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
 
     # Retrieve result
     show_command = base_command + ['--show']
-    if pwonly:
-        show_command += ['--outfile-format', '2']
+    show_command += ['--outfile-format', '2']
 
     p = subprocess.Popen(
         show_command,
@@ -420,15 +411,18 @@ def hashcat(hashfile, hashtype, wordlists=[], ruleset=None, pwonly=True):
     )
     passwords, _ = p.communicate()
 
-    result = tempfile.NamedTemporaryFile(delete=False, dir=TEMP_PATH)
+    result = tempfile.NamedTemporaryFile(delete=False, dir=directory)
     for p in passwords.splitlines():
-        # Remove username and write rest of the line to the result file
-        result.write(b':'.join(p.split(b':')[1:]) + b'\n')
+        if pwonly:
+            # Remove username
+            p = b':'.join(p.split(b':')[1:]) + b'\n'
+        # Write rest of the line to the result file
+        result.write(p)
     result.close()
     return result.name
 
 
-def crack_pwdump(hashfile, extra_words=[]):
+def crack_pwdump(hashfile, directory, extra_words=[]):
     """
     Crack the hashes in a pwdump file.
 
@@ -446,22 +440,24 @@ def crack_pwdump(hashfile, extra_words=[]):
     lm_result = hashcat(
         hashfile,
         hashtype=3000,
+        directory=directory,
     )
 
-    NT_RULESET = os.path.join(RULES_PATH, 'toggles-lm-ntlm.rule')
     nt_result = hashcat(
         hashfile,
         hashtype=1000,
         ruleset=NT_RULESET,
         wordlists=[lm_result],
+        directory=directory,
     )
 
-    ONE_RULE = os.path.join(RULES_PATH, 'OneRule.rule')
     final_result = hashcat(
         hashfile,
         hashtype=1000,
-        ruleset=ONE_RULE,
-        wordlists=[nt_result, CRACKSTATION],
+        ruleset=config.rule,
+        wordlists=[nt_result, config.wordlist],
+        pwonly=False,
+        directory=directory,
     )
     return final_result
 
@@ -472,10 +468,11 @@ def create_report(hashfile, passwords):
 
 def main():
     args = parse_args()
+    parse_config(args.config)
+    TEMP_DIR = tempfile.TemporaryDirectory(prefix='hch_', dir='.')
 
     try:
-        #  result = crack_pwdump(args.hashfile)
-        result = ''
+        result = crack_pwdump(args.hashfile, TEMP_DIR.name)
         create_report(args.hashfile, result)
     finally:
         TEMP_DIR.cleanup()
