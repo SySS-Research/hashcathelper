@@ -5,6 +5,7 @@
 import argparse
 import configparser
 import collections
+import json
 import os
 import subprocess
 import sys
@@ -462,20 +463,46 @@ def crack_pwdump(hashfile, directory, extra_words=[]):
     return final_result
 
 
-def create_report(hashfile, passwords):
-    pass
+def create_report(hash_file, password_file):
+    with open(password_file, 'r') as f:
+        passwords_content = f.read()
+    with open(hash_file, 'r') as f:
+        hashfile_content = f.read()
+    hashes = hashfile_content.splitlines()
+    passwords = passwords_content.splitlines()
+    total = len(hashes)
+    cracked = len(passwords)
+    lm_hash_count = 0
+    for line in hashes:
+        if ':aad3b435b51404eeaad3b435b51404ee:' not in line:
+            lm_hash_count += 1
+    report = {
+        'total': total,
+        'cracked': cracked,
+        'cracked_percentage': cracked/total*100.,
+        'lm_hash_count_percentage': lm_hash_count/total*100.,
+    }
+    with open(hash_file+'.report', 'rw') as f:
+        f.write(json.dumps(report))
+
+    outstring = """\
+Total: %(total)d
+Cracked: %(cracked)d (%(cracked_percentage).2f)
+LM Hashes: %(lm_hashes)d (%(lm_hashes_percentage).2f)
+""" % report
+    print(outstring)
 
 
 def main():
     args = parse_args()
     parse_config(args.config)
-    TEMP_DIR = tempfile.TemporaryDirectory(prefix='hch_', dir='.')
+    TEMP_DIR = tempfile.TemporaryDirectory(
+        prefix=args.hashfile+'_hch_',
+        dir='.',
+    )
 
-    try:
-        result = crack_pwdump(args.hashfile, TEMP_DIR.name)
-        create_report(args.hashfile, result)
-    finally:
-        TEMP_DIR.cleanup()
+    password_file = crack_pwdump(args.hashfile, TEMP_DIR.name)
+    create_report(args.hashfile, password_file)
 
 
 if __name__ == "__main__":

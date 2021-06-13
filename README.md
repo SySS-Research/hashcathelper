@@ -1,13 +1,13 @@
 hashcathelper
 =============
 
-Wrapper for hashcat which helps you crack hashes in the hashdump format.
+Wrapper for hashcat which helps you crack hashes in the pwdump format.
 
 First, it bruteforces all LM hashes and uses the results to crack the
 corresponding NT hashes. Then, a large wordlist (Crackstation) is used
 together with a large ruleset (OneRule) to crack all remaining NT hashes.
 
-The hashdump format is the one which is used by secretsdump or Meterpreter's
+The pwdump format is the one which is used by secretsdump or Meterpreter's
 hashdump function.
 
 Notes
