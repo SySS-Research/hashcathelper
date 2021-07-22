@@ -7,6 +7,7 @@ import configparser
 import collections
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -503,6 +504,7 @@ def main():
 
     password_file = crack_pwdump(args.hashfile, TEMP_DIR.name)
     create_report(args.hashfile, password_file)
+    shutil.cop(password_file, args.hashfile + '.out')
 
 
 if __name__ == "__main__":
