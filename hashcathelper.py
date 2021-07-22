@@ -14,7 +14,7 @@ import tempfile
 __version__ = '0.1'
 
 
-NT_RULESET = os.path.join(__file__, 'toggles-lm-ntlm.rule')
+NT_RULESET = os.path.join(os.path.dirname(__file__), 'toggles-lm-ntlm.rule')
 
 # Format: (name, speed factor)
 HASH_TYPES = {
