@@ -464,34 +464,68 @@ def crack_pwdump(hashfile, directory, extra_words=[]):
     return final_result
 
 
-def create_report(hash_file, password_file):
-    with open(password_file, 'r') as f:
-        passwords_content = f.read()
+def median(lst):
+    sortedLst = sorted(lst)
+    lstLen = len(lst)
+    index = (lstLen - 1) // 2
+
+    if (lstLen % 2):
+        return sortedLst[index]
+    else:
+        return (sortedLst[index] + sortedLst[index + 1])/2.0
+
+
+def average(lst):
+    return sum(lst)/len(lst)
+
+
+def create_report(hash_file, password_file=None):
+    if password_file:
+        with open(password_file, 'r') as f:
+            passwords_content = f.read()
+    else:
+        passwords_content = ''
     with open(hash_file, 'r') as f:
         hashfile_content = f.read()
     hashes = hashfile_content.splitlines()
     passwords = passwords_content.splitlines()
+
     total = len(hashes)
     cracked = len(passwords)
     lm_hash_count = 0
     for line in hashes:
         if ':aad3b435b51404eeaad3b435b51404ee:' not in line:
             lm_hash_count += 1
+    nt_hashes = collections.Counter(line.split(':')[3] for line in hashes)
+    empty_nt_hash_count = nt_hashes['31d6cfe0d16ae931b73c59d7e0c089c0']
+    del nt_hashes['31d6cfe0d16ae931b73c59d7e0c089c0']
+    hash_clusters = dict(c for c in nt_hashes.most_common() if c[1] > 1)
+    cluster_count = collections.Counter(c for c in hash_clusters.values()
+                                        if c > 1)
+
     report = {
+        'filename': hash_file,
         'total': total,
         'cracked': cracked,
         'cracked_percentage': cracked/total*100.,
+        'lm_hash_count': lm_hash_count,
         'lm_hash_count_percentage': lm_hash_count/total*100.,
+        #  'hash_clusters': hash_clusters,  # is large
+        'empty_nt_hash_count': empty_nt_hash_count,
+        'cluster_count': dict(cluster_count),
+        'median_cluster_count': median(cluster_count.values()),
+        'average_cluster_count': average(cluster_count.values()),
     }
-    with open(hash_file+'.report', 'rw') as f:
+    with open(hash_file+'.report', 'w') as f:
         f.write(json.dumps(report))
 
     outstring = """\
 Total: %(total)d
 Cracked: %(cracked)d (%(cracked_percentage).2f)
-LM Hashes: %(lm_hashes)d (%(lm_hashes_percentage).2f)
+LM Hashes: %(lm_hash_count)d (%(lm_hash_count_percentage).2f)
 """ % report
     print(outstring)
+    print(report)
 
 
 def main():
