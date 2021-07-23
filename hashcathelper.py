@@ -5,8 +5,8 @@
 import argparse
 import configparser
 import collections
-import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -343,10 +343,20 @@ def parse_args():
         dest='hashfile',
         help="path to the file containing the hashes",
     )
+
     parser.add_argument(
-        dest='password_candidate',
-        nargs="*",
-        help="additional password candidate to add to the wordlist"
+        dest='passwordfile',
+        nargs='?',
+        default=None,
+        help="path to the output file with the results; if it already"
+             " exists, we will skip straight to creating the report",
+    )
+
+    parser.add_argument(
+        '-a', '--active-accounts',
+        help="path to a file containing active accounts "
+             "(one per line; without domain or UPN; case insensitive); "
+             "if empty, all accounts are assumed to be active"
     )
 
     return parser.parse_args()
@@ -479,19 +489,112 @@ def average(lst):
     return sum(lst)/len(lst)
 
 
-def create_report(hash_file, password_file=None):
+def get_top_basewords(passwords):
+    counts = collections.Counter()
+    for p in passwords:
+        if not p:
+            continue
+        # Convert to lower case
+        p = p.lower()
+
+        # Remove special chars and digits from beginning and end
+        p = re.sub('[0-9!@#$%^&*()=_+~{}|"? ><,./\\\'[\\]-]*$', '', p)
+        p = re.sub('^[0-9!@#$%^&*()=_+~{}|" ?><,./\\\'[\\]-]*', '', p)
+
+        # De-leet-ify
+        p = p.replace('!', 'i')
+        p = p.replace('1', 'i')
+        p = p.replace('0', 'o')
+        p = p.replace('3', 'e')
+        p = p.replace('4', 'a')
+        p = p.replace('@', 'a')
+        p = p.replace('+', 't')
+        p = p.replace('$', 's')
+        p = p.replace('5', 's')
+
+        # Remove remaining special chars
+        p = re.sub('[!@#$%^&*()=_+~{}|"?><,./\\\'[\\]-]', '', p)
+
+        # Forget this if it's empty by now
+        if not p:
+            continue
+
+        # Is it multiple words? Get the longest
+        p = sorted(p.split(), key=len)[-1]
+
+        # If there are digits left (i.e. it's not a word) or the word is
+        # empty, we're not interested anymore
+        if not re.search('[0-9]', p) and p:
+            counts.update([p])
+
+    # Remove basewords shorter than 3 characters or occurance less than 2
+    for k in counts.copy():
+        if counts[k] == 1 or len(k) < 3:
+            del counts[k]
+    return counts.most_common(10)
+
+
+def get_char_classes(passwords):
+    def get_character_classes(s):
+        upper = False
+        lower = False
+        digits = False
+        chars = False
+        if re.search('[A-Z]', s):
+            upper = True
+        if re.search('[a-z]', s):
+            lower = True
+        if re.search('[0-9]', s):
+            digits = True
+        if re.search('[^A-Za-z0-9]', s):
+            chars = True
+        result = sum([upper, lower, digits, chars])
+        return result
+
+    counts = collections.Counter()
+    for p in passwords:
+        classes = get_character_classes(p)
+        counts.update([classes])
+    return counts
+
+
+def create_report(hash_file, password_file=None, active_accounts=None,
+                  pretty=True):
+    print("Creating report...")
+
+    # Load data from files
     if password_file:
-        with open(password_file, 'r') as f:
+        with open(password_file, 'r', encoding="utf-8", errors="replace") as f:
             passwords_content = f.read()
     else:
         passwords_content = ''
+
     with open(hash_file, 'r') as f:
         hashfile_content = f.read()
-    hashes = hashfile_content.splitlines()
-    passwords = passwords_content.splitlines()
 
+    hashes = hashfile_content.splitlines()
+    account_plus_password = passwords_content.splitlines()
+
+    pattern = re.compile(r'([^\\]+\\)?(?P<name>[^:]+):.*$')
+
+    def get_account_name(line):
+        name = pattern.search(line).group('name').lower()
+        return name
+
+    if active_accounts:
+        print("Only taking active accounts into consideration")
+        with open(active_accounts, 'r') as f:
+            active_accounts = f.read().lower().splitlines()
+        account_plus_password = [p for p in account_plus_password
+                                 if get_account_name(p) in active_accounts]
+        hashes = [h for h in hashes
+                  if get_account_name(h) in active_accounts]
+    else:
+        print("Assuming all accounts are active")
+
+    # Analyze hashes only
     total = len(hashes)
-    cracked = len(passwords)
+    cracked = len(account_plus_password)
     lm_hash_count = 0
     for line in hashes:
         if ':aad3b435b51404eeaad3b435b51404ee:' not in line:
@@ -503,6 +606,19 @@ def create_report(hash_file, password_file=None):
     cluster_count = collections.Counter(c for c in hash_clusters.values()
                                         if c > 1)
 
+    # Analyze passwords
+    passwords = [':'.join(line.split(':')[1:])
+                 for line in account_plus_password]
+    lengths = [len(p) for p in passwords]
+    average_password_length = average(lengths)
+    median_password_length = median(lengths)
+    password_length_count = dict(collections.Counter(lengths))
+
+    top10_passwords = dict(collections.Counter(passwords).most_common(10))
+    top10_basewords = dict(get_top_basewords(passwords))
+    char_class_count = dict(get_char_classes(passwords))
+
+    # Create Report
     report = {
         'filename': hash_file,
         'total': total,
@@ -515,30 +631,45 @@ def create_report(hash_file, password_file=None):
         'cluster_count': dict(cluster_count),
         'median_cluster_count': median(cluster_count.values()),
         'average_cluster_count': average(cluster_count.values()),
+        'average_password_length': average_password_length,
+        'median_password_length': median_password_length,
+        'password_length_count': password_length_count,
+        'top10_passwords': top10_passwords,
+        'top10_basewords': top10_basewords,
+        'char_class_count': char_class_count,
     }
-    with open(hash_file+'.report', 'w') as f:
-        f.write(json.dumps(report))
 
-    outstring = """\
+    if pretty:
+        outstring = """\
 Total: %(total)d
 Cracked: %(cracked)d (%(cracked_percentage).2f)
 LM Hashes: %(lm_hash_count)d (%(lm_hash_count_percentage).2f)
-""" % report
-    print(outstring)
-    print(report)
+    """ % report
+        print(outstring)
+    else:
+        print(report)
 
 
 def main():
     args = parse_args()
-    parse_config(args.config)
-    TEMP_DIR = tempfile.TemporaryDirectory(
-        prefix=args.hashfile+'_hch_',
-        dir='.',
-    )
 
-    password_file = crack_pwdump(args.hashfile, TEMP_DIR.name)
-    create_report(args.hashfile, password_file)
-    shutil.cop(password_file, args.hashfile + '.out')
+    if os.path.exists(args.passwordfile):
+        print("Password file already exists, skipping hashcat run")
+    else:
+        parse_config(args.config)
+        TEMP_DIR = tempfile.TemporaryDirectory(
+            prefix=args.hashfile+'_hch_',
+            dir='.',
+        )
+        password_file = crack_pwdump(args.hashfile, TEMP_DIR.name)
+        shutil.copy(password_file, args.passwordfile)
+
+    create_report(
+        args.hashfile,
+        args.passwordfile,
+        active_accounts=args.active_accounts,
+        pretty=False,
+    )
 
 
 if __name__ == "__main__":
