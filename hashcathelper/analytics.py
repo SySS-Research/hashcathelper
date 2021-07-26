@@ -247,9 +247,12 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
             k*v for k, v in char_classes.items()
         ) / len(passwords) * 100) / 100
 
-        report['top10_passwords'] = \
-            dict(collections.Counter(passwords).most_common(10))
-        report['top10_basewords'] = dict(get_top_basewords(passwords))
+        report['top10_passwords'] = collections.OrderedDict(
+            collections.Counter(passwords).most_common(10)
+        )
+        report['top10_basewords'] = collections.OrderedDict(
+            get_top_basewords(passwords)
+        )
 
         if 'cluster_count' not in report:
             cluster_analysis(report, passwords, empty='')
