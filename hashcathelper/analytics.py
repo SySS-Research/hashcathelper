@@ -175,10 +175,14 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         log.info("Only taking specified accounts into consideration")
         filter_accounts = set(line.lower() for line in filter_accounts)
         if accounts_plus_passwords:
+            before = len(accounts_plus_passwords)
             accounts_plus_passwords = [
                 p for p in accounts_plus_passwords
                 if get_account_name(p) in filter_accounts
             ]
+            after = len(accounts_plus_passwords)
+            report['total_accounts'] = before
+            report['removed'] = before - after
         if hashes:
             before = len(hashes)
             hashes = [h for h in hashes
