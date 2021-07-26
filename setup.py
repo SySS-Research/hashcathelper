@@ -19,8 +19,10 @@ setuptools.setup(
     },
     install_requires=[
         'pyxdg',
-        'tabulate',
     ],
+    extras_require={
+        'tables': ['tabulate'],
+    },
     python_requires='>=3.5',
     tests_require=[
         'pytest',

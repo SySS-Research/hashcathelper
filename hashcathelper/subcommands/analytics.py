@@ -74,12 +74,17 @@ def analytics(args):
         import json
         out = json.dumps(report, indent=4)
     elif args.format == 'text':
-        import tabulate
         simple_values = [
             [v, labels.get(k, k)] for k, v in report.items()
             if not (isinstance(v, (list, dict)))
         ]
-        out = tabulate.tabulate(simple_values) + "\n"
+        try:
+            import tabulate
+            out = tabulate.tabulate(simple_values) + "\n"
+        except ImportError:
+            print("Error: package 'tabulate' not installed")
+            for k, v in simple_values.items():
+                print("%s\t%s" % (k, v))
         for k, v in report.items():
             if isinstance(v, dict):
                 out += histogram(v, title=labels.get(k, k))
