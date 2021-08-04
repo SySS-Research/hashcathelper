@@ -9,7 +9,7 @@ args = []
 args.append(argument(
     dest='hashfile',
     nargs='+',
-    help="path to the file containing the hashes",
+    help="path to a file containing hashes in pwdump format",
 ))
 
 args.append(argument(
