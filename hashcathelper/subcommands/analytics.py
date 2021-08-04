@@ -59,7 +59,7 @@ args.append(argument(
 @subcommand(args)
 def analytics(args):
     '''Output interesting statistics'''
-    from ..analytics import create_report, labels
+    from ..analytics import create_report
     report = create_report(
         args.hashes,
         args.accounts_plus_passwords,
@@ -74,29 +74,35 @@ def analytics(args):
         import json
         out = json.dumps(report, indent=4)
     elif args.format == 'text':
-        out = ""
-        simple_values = [
-            [v, labels.get(k, k)] for k, v in report.items()
-            if not (isinstance(v, (list, dict)))
-        ]
-        try:
-            import tabulate
-            out += tabulate.tabulate(simple_values) + "\n"
-        except ImportError:
-            import sys
-            print("Error: package 'tabulate' not installed", file=sys.stderr)
-            for val in simple_values:
-                print("%s\t%s" % (val[0], val[1]))
-        for k, v in report.items():
-            if isinstance(v, dict):
-                out += histogram(v, title=labels.get(k, k))
-                out += "\n"
+        out = pretty_print(report)
 
     if args.outfile:
         with open(args.outfile, 'w') as f:
             f.write(out)
     else:
         print(out, end='')
+
+
+def pretty_print(report):
+    from ..analytics import labels
+    out = ''
+    simple_values = [
+        [v, labels.get(k, k)] for k, v in report.items()
+        if not (isinstance(v, (list, dict)))
+    ]
+    try:
+        import tabulate
+        out += tabulate.tabulate(simple_values) + "\n"
+    except ImportError:
+        import sys
+        print("Error: package 'tabulate' not installed", file=sys.stderr)
+        for val in simple_values:
+            print("%s\t%s" % (val[0], val[1]))
+    for k, v in report.items():
+        if isinstance(v, dict):
+            out += histogram(v, title=labels.get(k, k))
+            out += "\n"
+    return out
 
 
 def histogram(dct, title='', width=50, indent=4):

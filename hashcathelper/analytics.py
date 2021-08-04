@@ -138,6 +138,7 @@ def prcnt(a, b):
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
                   filter_accounts=None, censor=False):
+    # TODO refactor this long function
     log.info("Creating report...")
     report = {}
 
