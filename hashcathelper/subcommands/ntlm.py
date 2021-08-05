@@ -25,35 +25,46 @@ args.append(argument(
 @subcommand(args)
 def ntlm(args):
     '''Crack NTLM hashes from a SAM hive or NTDS.dit'''
+    import shutil
     import tempfile
 
     from ..hashcat import crack_pwdump
 
     config = parse_config(args.config)
-    TEMP_DIR = tempfile.TemporaryDirectory(
+    TEMP_DIR = tempfile.mkdtemp(
         prefix=args.hashfile[0]+'_hch_',
         dir='.',
     )
+    log.info("Created temporary directory: %s" % TEMP_DIR)
 
     if len(args.hashfile) == 1:
+        log.info("Starting hashcat...")
         password_file = crack_pwdump(
             config.hashcat_bin,
             args.hashfile[0],
-            TEMP_DIR.name,
+            TEMP_DIR,
             config.wordlist,
             config.rule,
         )
-        copy_result(password_file, args.hashfile, args.suffix)
+        result = copy_result(password_file, args.hashfile, args.suffix)
+        log.info("Success! Output is in: " % result)
     else:
-        compiled_hashfile = compile_files(args.hashfile, TEMP_DIR.name)
+        log.info("Compiling files into one...")
+        compiled_hashfile = compile_files(args.hashfile, TEMP_DIR)
+        log.info("Starting hashcat...")
         password_file = crack_pwdump(
             config.hashcat_bin,
             compiled_hashfile,
-            TEMP_DIR.name,
+            TEMP_DIR,
             config.wordlist,
             config.rule,
         )
-        decompile_file(password_file, args.hashfile, args.suffix)
+        log.info("Decompiling files...")
+        result = decompile_file(password_file, args.hashfile, args.suffix)
+        log.info("Success! Output is in: %s" % ', '.join(result))
+    log.info("Deleting temporary directory...")
+    shutil.rmtree(TEMP_DIR)
+    log.info("Done.")
 
 
 def compile_files(hashfiles, tempdir='.'):
@@ -61,45 +72,84 @@ def compile_files(hashfiles, tempdir='.'):
     import tempfile
     result = tempfile.NamedTemporaryFile(dir=tempdir, delete=False).name
 
-    with open(result, 'w') as f_out:
+    with open(result, 'wb') as f_out:
         for hf in hashfiles:
-            with open(hf, 'r') as f_in:
+            with open(hf, 'rb') as f_in:
                 f_out.write(f_in.read())
 
     return result
 
 
 def decompile_file(password_file, hashfiles, suffix):
-    """Reverse the process based on the original hashfiles"""
+    """Reverse the process based on the original hashfiles
 
-    # Create dict with original hashes and create file descriptors
+    Returns the resulting filenames
+    """
+
+    # Create dict with original usernames and hashes and create file
+    # descriptors
+    usernames = {}
     hashes = {}
+    filenames = []
+
     for hf in hashfiles:
-        fp = open(find_filename(hf, suffix), 'w')
-        with open(hf, 'r') as f:
-            hashes[fp] = set(line.split(':')[0]
-                             for line in f.read().splitlines())
+        filename = find_filename(hf, suffix)
+        filenames.append(filename)
+        fp = open(filename, 'wb')
+        with open(hf, 'rb') as f:
+            hashes[fp] = set()
+            usernames[fp] = set()
+            for line in f.read().splitlines():
+                username, _, _, nthash = line.split(b':')[:4]
+                usernames[fp].add(username)
+                hashes[fp].add(b':'.join([username, nthash]))
 
     # Iterate over cracked passwords and store in correct outfile
-    with open(password_file, 'r') as f:
+    with open(password_file, 'br') as f:
         for line in f.read().splitlines():
-            user = line.split(':')[0]
-            for fp, names in hashes.items():
-                if user in names:
-                    fp.write(line + '\n')
+            username = line.split(b':')[0]
+            # Find right file descriptor (usernames can be without UPN
+            # suffix/domain, so mapping is not 1 to 1
+            # Try username only first
+            candidates = [fp for fp, names in usernames.items()
+                          if username in names]
+            if len(candidates) == 1:
+                candidates[0].write(line + b'\n')
+            else:
+                #  Didn't get a unique result, so hash the password and try
+                #  now to see which original file it was
+                pw = b':'.join(line.split(b':')[1:])
+                nthash = get_nthash(pw)
+                candidates = [fp for fp, names in hashes.items()
+                              if b':'.join([username, nthash]) in names]
+                for fp in candidates:
+                    fp.write(line + b'\n')
+                if not candidates:
+                    log.error(
+                        "Orphaned user: %s:%s" % (
+                            username.decode(errors='replace'),
+                            nthash,
+                        )
+                    )
 
     # Close files
     for fp in hashes.keys():
         fp.close()
 
+    return filenames
+
 
 def copy_result(src, dest, suffix):
     """Copy result to file with correct suffix while making sure not to
-    overwrite files"""
+    overwrite files
+
+    Returns the new filename
+    """
     import shutil
 
     target = find_filename(dest, suffix)
     shutil.copy(src, target)
+    return target
 
 
 def find_filename(filename, suffix):
@@ -122,3 +172,15 @@ def find_filename(filename, suffix):
             break
 
     return target
+
+
+def get_nthash(password):
+    """Compute NT hash of password (must be bytes)"""
+    import hashlib
+    import binascii
+
+    result = hashlib.new(
+        'md4',
+        password.decode(errors="replace").encode('utf-16le'),
+    ).digest()
+    return binascii.hexlify(result)
