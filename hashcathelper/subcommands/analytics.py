@@ -107,6 +107,8 @@ def pretty_print(report):
 
 def histogram(dct, title='', width=50, indent=4):
     """Create a text-based horizontal bar chart using Unicode"""
+    if not dct:
+        return "%s: No data" % title
     maxval = max(dct.values())
     maxwidth = max([len(str(k)) for k in dct.keys()])
     blocks = [
