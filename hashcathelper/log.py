@@ -67,7 +67,7 @@ def init_logging(loglevel=logging.WARNING, logfile=None):
     ch.setLevel(loglevel)
 
     # create formatter and add it to the handlers
-    if loglevel == logging.DEBUG:
+    if loglevel in ['DEBUG', logging.DEBUG]:
         formatter = CustomFormatterDebug()
     else:
         formatter = CustomFormatter()

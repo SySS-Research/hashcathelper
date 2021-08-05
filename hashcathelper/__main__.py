@@ -2,7 +2,7 @@ def main(argv=None):
     from .args import parse_args
     from .log import init_logging
     args = parse_args(argv=argv)
-    init_logging()
+    init_logging(loglevel=args.log_level)
     args.func(args)
 
 
