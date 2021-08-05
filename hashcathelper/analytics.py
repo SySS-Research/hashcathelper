@@ -253,7 +253,10 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         ) / len(passwords) * 100) / 100
 
         report['top10_passwords'] = collections.OrderedDict(
-            collections.Counter(passwords).most_common(10)
+            filter(
+                lambda x: x[1] > 1,
+                collections.Counter(passwords).most_common(10),
+            )
         )
         report['top10_basewords'] = collections.OrderedDict(
             get_top_basewords(passwords)
