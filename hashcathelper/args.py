@@ -33,6 +33,8 @@ parser.add_argument(
 
 subparsers = parser.add_subparsers(help='choose a sub-command',
                                    dest='subcommand')
+# Keep track of the subparsers we add so we can add subsubparsers
+subparsers_map = {}
 
 
 def argument(*name_or_flags, **kwargs):
@@ -61,6 +63,7 @@ def subcommand(args=[], parent=subparsers):
         for arg in args:
             parser.add_argument(*arg[0], **arg[1])
         parser.set_defaults(func=func)
+        subparsers_map[func.__name__] = parser
     return decorator
 
 
