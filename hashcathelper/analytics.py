@@ -198,8 +198,8 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     if accounts_plus_passwords:
         count = 0
         for line in accounts_plus_passwords:
-            user, remainder = line.split(':')
-            password = ':'.join(remainder)
+            user = line.split(':')[0]
+            password = ':'.join(line.split(':')[1:])
             if '\\' in user:
                 user = user.split('\\')[1]
             if user.lower() == password.lower():
