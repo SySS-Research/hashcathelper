@@ -136,13 +136,8 @@ def prcnt(a, b):
     return int(a/b * 100 * 100)/100
 
 
-def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
-                  filter_accounts=None, censor=False):
-    # TODO refactor this long function
-    log.info("Creating report...")
-    report = {}
-
-    # Sanity check
+def do_sanity_check(hashes, accounts_plus_passwords, passwords,
+                    filter_accounts):
     if not (hashes or accounts_plus_passwords or passwords):
         log.error("No files specified, nothing to do")
         return {}
@@ -159,54 +154,128 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
             "if neither hashes nor accounts_plus_passwords is None"
         )
 
-    # Load data from files
-    hashes = load_lines(hashes)
-    accounts_plus_passwords = load_lines(accounts_plus_passwords)
-    passwords = load_lines(passwords)
-    filter_accounts = load_lines(filter_accounts)
 
+def analyze_passwords(report, passwords):
+    if 'accounts' not in report:
+        report['accounts'] = len(passwords)
+    if 'total_accounts' not in report:
+        report['total_accounts'] = len(passwords)
+    lengths = [len(p) for p in passwords]
+    report['average_password_length'] = average(lengths)
+    report['median_password_length'] = median(lengths)
+    report['password_length_count'] = sort_dict(
+        collections.Counter(lengths)
+    )
+    char_classes = get_char_classes(passwords)
+    report['char_class_count'] = sort_dict(char_classes)
+    report['average_character_classes'] = int(sum(
+        k*v for k, v in char_classes.items()
+    ) / len(passwords) * 100) / 100
+
+    report['top10_passwords'] = collections.OrderedDict(
+        filter(
+            lambda x: x[1] > 1,
+            collections.Counter(passwords).most_common(10),
+        )
+    )
+    report['top10_basewords'] = collections.OrderedDict(
+        get_top_basewords(passwords)
+    )
+
+    if 'cluster_count' not in report:
+        cluster_analysis(report, passwords, empty='')
+
+
+def count_user_equal_password(report, accounts_plus_passwords):
+    count = 0
+    for line in accounts_plus_passwords:
+        user = line.split(':')[0]
+        password = ':'.join(line.split(':')[1:])
+        if '\\' in user:
+            user = user.split('\\')[1]
+        if user.lower() == password.lower():
+            count += 1
+    report['user_equals_password'] = count
+    report['user_equals_password_percentage'] = \
+        prcnt(count, len(accounts_plus_passwords))
+
+
+def analyze_hashes(report, hashes, passwords):
+    report['accounts'] = len(hashes)
+    if 'total_accounts' not in report:
+        report['total_accounts'] = len(hashes)
+    if passwords:
+        report['cracked'] = len(passwords)
+        report['cracked_percentage'] = \
+            prcnt(len(passwords), len(hashes))
+    lm_hash_count = 0
+    for line in hashes:
+        if ':%s:' % LM_EMPTY not in line:
+            lm_hash_count += 1
+    report['lm_hash_count'] = lm_hash_count
+    report['lm_hash_count_percentage'] = \
+        prcnt(lm_hash_count, report['accounts'])
+
+    # Clusters
+    nt_hashes = [line.split(':')[3] for line in hashes]
+    cluster_analysis(report, nt_hashes, empty=NT_EMPTY)
+
+
+def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
     pattern = re.compile(r'([^\\]+\\)?(?P<name>[^:]+):.*$')
 
     def get_account_name(line):
         name = pattern.search(line).group('name').lower()
         return name
 
+    filter_accounts = set(line.lower() for line in filter_accounts)
+    if accounts_plus_passwords:
+        before = len(accounts_plus_passwords)
+        accounts_plus_passwords = [
+            p for p in accounts_plus_passwords
+            if get_account_name(p) in filter_accounts
+        ]
+        after = len(accounts_plus_passwords)
+        report['total_accounts'] = before
+        report['removed'] = before - after
+    if hashes:
+        before = len(hashes)
+        hashes = [h for h in hashes
+                  if get_account_name(h) in filter_accounts]
+        after = len(hashes)
+        report['total_accounts'] = before
+        report['removed'] = before - after
+
+
+def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
+                  filter_accounts=None, censor=False):
+    log.info("Creating report...")
+    report = {}
+
+    do_sanity_check(hashes, accounts_plus_passwords, passwords,
+                    filter_accounts)
+
+    # Load data from files
+    hashes = load_lines(hashes)
+    accounts_plus_passwords = load_lines(accounts_plus_passwords)
+    passwords = load_lines(passwords)
+    filter_accounts = load_lines(filter_accounts)
+
     # Filter accounts
     if filter_accounts:
         log.info("Only taking specified accounts into consideration")
-        filter_accounts = set(line.lower() for line in filter_accounts)
-        if accounts_plus_passwords:
-            before = len(accounts_plus_passwords)
-            accounts_plus_passwords = [
-                p for p in accounts_plus_passwords
-                if get_account_name(p) in filter_accounts
-            ]
-            after = len(accounts_plus_passwords)
-            report['total_accounts'] = before
-            report['removed'] = before - after
-        if hashes:
-            before = len(hashes)
-            hashes = [h for h in hashes
-                      if get_account_name(h) in filter_accounts]
-            after = len(hashes)
-            report['total_accounts'] = before
-            report['removed'] = before - after
+        accounts_plus_passwords = remove_accounts(
+            report,
+            filter_accounts,
+            accounts_plus_passwords,
+            hashes,
+        )
     else:
         report['removed'] = 0
 
     # Count accounts where user==password
     if accounts_plus_passwords:
-        count = 0
-        for line in accounts_plus_passwords:
-            user = line.split(':')[0]
-            password = ':'.join(line.split(':')[1:])
-            if '\\' in user:
-                user = user.split('\\')[1]
-            if user.lower() == password.lower():
-                count += 1
-        report['user_equals_password'] = count
-        report['user_equals_password_percentage'] = \
-            prcnt(count, len(accounts_plus_passwords))
+        count_user_equal_password(report, accounts_plus_passwords)
 
     # Remove account names now that they are filtered
     if not passwords:
@@ -215,66 +284,25 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
 
     # Analyze hashes only
     if hashes:
-        report['accounts'] = len(hashes)
-        if 'total_accounts' not in report:
-            report['total_accounts'] = len(hashes)
-        if passwords:
-            report['cracked'] = len(passwords)
-            report['cracked_percentage'] = \
-                prcnt(len(passwords), len(hashes))
-        lm_hash_count = 0
-        for line in hashes:
-            if ':%s:' % LM_EMPTY not in line:
-                lm_hash_count += 1
-        report['lm_hash_count'] = lm_hash_count
-        report['lm_hash_count_percentage'] = \
-            prcnt(lm_hash_count, report['accounts'])
-
-        # Clusters
-        nt_hashes = [line.split(':')[3] for line in hashes]
-        cluster_analysis(report, nt_hashes, empty=NT_EMPTY)
+        analyze_hashes(report, hashes, passwords)
 
     # Analyze passwords
     if passwords:
-        if 'accounts' not in report:
-            report['accounts'] = len(passwords)
-        if 'total_accounts' not in report:
-            report['total_accounts'] = len(passwords)
-        lengths = [len(p) for p in passwords]
-        report['average_password_length'] = average(lengths)
-        report['median_password_length'] = median(lengths)
-        report['password_length_count'] = sort_dict(
-            collections.Counter(lengths)
-        )
-        char_classes = get_char_classes(passwords)
-        report['char_class_count'] = sort_dict(char_classes)
-        report['average_character_classes'] = int(sum(
-            k*v for k, v in char_classes.items()
-        ) / len(passwords) * 100) / 100
-
-        report['top10_passwords'] = collections.OrderedDict(
-            filter(
-                lambda x: x[1] > 1,
-                collections.Counter(passwords).most_common(10),
-            )
-        )
-        report['top10_basewords'] = collections.OrderedDict(
-            get_top_basewords(passwords)
-        )
-
-        if 'cluster_count' not in report:
-            cluster_analysis(report, passwords, empty='')
+        analyze_passwords(report, passwords)
 
     if censor:
-        sensitive_fields = [
-            'top10_basewords',
-            'top10_passwords',
-        ]
-        for f in sensitive_fields:
-            if f in report:
-                del report[f]
-
+        censor_report(report)
     return report
+
+
+def censor_report(report):
+    sensitive_fields = [
+        'top10_basewords',
+        'top10_passwords',
+    ]
+    for f in sensitive_fields:
+        if f in report:
+            del report[f]
 
 
 def cluster_analysis(report, values, empty=''):
