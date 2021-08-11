@@ -107,6 +107,7 @@ def test_ntlm(temp_dir, words, config_file):
     import os
 
     from hashcathelper.__main__ import main
+    from hashcathelper.analytics import create_report
 
     random_passwords = 300
     pw_dump, cleartext = create_pwdump(
@@ -137,3 +138,11 @@ def test_ntlm(temp_dir, words, config_file):
             assert line[:-1] in cleartext
 
     assert cracked_count + random_passwords == len(cleartext)
+
+    report = create_report(
+        tmp_hash,
+        tmp_hash+'.out',
+    )
+
+    print(report)
+    assert report['cracked'] == 1015
