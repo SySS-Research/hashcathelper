@@ -65,7 +65,7 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
 
 
 def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
-                 extra_words=[]):
+                 extra_words=[], skip_lm=False):
     """
     Crack the hashes in a pwdump file.
 
@@ -80,28 +80,32 @@ def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
     with the OneRule rule set.
     """
 
-    lm_result = hashcat(
-        hashcat_bin,
-        hashfile,
-        hashtype=3000,
-        directory=directory,
-    )
+    if skip_lm:
+        wordlists = [wordlist]
+    else:
+        lm_result = hashcat(
+            hashcat_bin,
+            hashfile,
+            hashtype=3000,
+            directory=directory,
+        )
 
-    nt_result = hashcat(
-        hashcat_bin,
-        hashfile,
-        hashtype=1000,
-        ruleset=NT_RULESET,
-        wordlists=[lm_result],
-        directory=directory,
-    )
+        nt_result = hashcat(
+            hashcat_bin,
+            hashfile,
+            hashtype=1000,
+            ruleset=NT_RULESET,
+            wordlists=[lm_result],
+            directory=directory,
+        )
+        wordlists = [nt_result, wordlist]
 
     final_result = hashcat(
         hashcat_bin,
         hashfile,
         hashtype=1000,
         ruleset=ruleset,
-        wordlists=[nt_result, wordlist],
+        wordlists=wordlists,
         pwonly=False,
         directory=directory,
     )

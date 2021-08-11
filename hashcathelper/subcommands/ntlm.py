@@ -21,6 +21,13 @@ args.append(argument(
          "if the file already exists (default: %(default)s)",
 ))
 
+args.append(argument(
+    '-L', '--skip-lm',
+    default=False,
+    action='store_true',
+    help="Do not crack LM hashes first",
+))
+
 
 @subcommand(args)
 def ntlm(args):
