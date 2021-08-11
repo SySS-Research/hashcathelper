@@ -52,6 +52,8 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         stderr=subprocess.PIPE,
     )
     passwords, _ = p.communicate()
+    if p.returncode:
+        raise RuntimeError("Hashcat exited with non-zero return code")
 
     result = tempfile.NamedTemporaryFile(delete=False, dir=directory)
     for p in passwords.splitlines():
