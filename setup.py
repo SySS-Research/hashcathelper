@@ -19,13 +19,17 @@ setuptools.setup(
     },
     install_requires=[
         'pyxdg',
+        'pycryptodome',
     ],
     extras_require={
         'tables': ['tabulate'],
+        'database': ['sqlalchemy'],
     },
     python_requires='>=3.5',
     tests_require=[
         'pytest',
+        'tox',
+        'flake8',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

@@ -1,6 +1,8 @@
 /_*
 hashcathelper.conf
+hashcathelper.pyz
 *.egg-info
 build
 dist
 __pycache__
+.tox
