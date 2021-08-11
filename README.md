@@ -61,6 +61,17 @@ $ hashcathelper analytics -f text \
     -F active_accounts.txt
 ```
 
+### Subcommand "db"
+
+Use this subcommand to interact with the database.
+Results from the `analytics` subcommand command can be submitted and
+collected in a database. This enables us to view statistics for each entry,
+for example how they compare to other customers. We can now say: 57% of all
+passwords could be cracked, which puts you in the bottom 20th percentile.
+
+Use `hashcathelper db submit <filename>` to submit a result and `hashcathelper db
+stats <id>` to view statistics for one entry.
+
 ### Subcommand "autocrack"
 
 To be done; stay tuned.
