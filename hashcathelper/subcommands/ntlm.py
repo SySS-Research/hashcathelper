@@ -92,6 +92,7 @@ def decompile_file(password_file, hashfiles, suffix):
 
     Returns the resulting filenames
     """
+    from ..utils import get_nthash
 
     # Create dict with original usernames and hashes and create file
     # descriptors
@@ -179,15 +180,3 @@ def find_filename(filename, suffix):
             break
 
     return target
-
-
-def get_nthash(password):
-    """Compute NT hash of password (must be bytes)"""
-    import hashlib
-    import binascii
-
-    result = hashlib.new(
-        'md4',
-        password.decode(errors="replace").encode('utf-16le'),
-    ).digest()
-    return binascii.hexlify(result)
