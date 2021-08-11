@@ -38,6 +38,9 @@ def ntlm(args):
     from ..hashcat import crack_pwdump
 
     config = parse_config(args.config)
+
+    do_sanity_check(config)
+
     TEMP_DIR = tempfile.mkdtemp(
         prefix=args.hashfile[0]+'_hch_',
         dir='.',
@@ -52,9 +55,10 @@ def ntlm(args):
             TEMP_DIR,
             config.wordlist,
             config.rule,
+            skip_lm=args.skip_lm,
         )
-        result = copy_result(password_file, args.hashfile, args.suffix)
-        log.info("Success! Output is in: " % result)
+        result = copy_result(password_file, args.hashfile[0], args.suffix)
+        log.info("Success! Output is in: %s" % result)
     else:
         log.info("Compiling files into one...")
         compiled_hashfile = compile_files(args.hashfile, TEMP_DIR)
@@ -65,6 +69,7 @@ def ntlm(args):
             TEMP_DIR,
             config.wordlist,
             config.rule,
+            skip_lm=args.skip_lm,
         )
         log.info("Decompiling files...")
         result = decompile_file(password_file, args.hashfile, args.suffix)
@@ -72,6 +77,12 @@ def ntlm(args):
     log.info("Deleting temporary directory...")
     shutil.rmtree(TEMP_DIR)
     log.info("Done.")
+
+
+def do_sanity_check(config):
+    if not config.hashcat_bin:
+        log.critical("Config value not provided: %s" % 'hashcat_bin')
+        exit(1)
 
 
 def compile_files(hashfiles, tempdir='.'):
