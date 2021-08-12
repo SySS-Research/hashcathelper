@@ -35,14 +35,6 @@ case insensitive.
 ))
 
 args.append(argument(
-    '-c', '--censor',
-    action='store_true',
-    default=False,
-    help="only output statistics without sensitive information "
-         "(default: %(default)s)",
-))
-
-args.append(argument(
     '-f', '--format',
     choices=['text', 'json'],
     default='text',
@@ -67,7 +59,6 @@ def analytics(args):
         args.accounts_plus_passwords,
         args.passwords_only,
         args.filter_accounts,
-        censor=args.censor,
     )
 
     if not report:
