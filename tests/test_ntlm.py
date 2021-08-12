@@ -141,44 +141,28 @@ def test_ntlm(temp_dir, words, config_file):
 
 
 def test_report():
+    import json
     from hashcathelper.analytics import create_report
+    from hashcathelper.asciioutput import pretty_print
 
     hashfile = os.path.join(SCRIPT_PATH, 'hash.txt')
     outfile = os.path.join(SCRIPT_PATH, 'hash.txt.out')
-    report = create_report(hashfile, outfile)
-    expected = {
-        'removed': 0,
-        'user_equals_password': 0,
-        'user_equals_password_percentage': 0.0, 'accounts': 1315,
-        'total_accounts': 1315, 'cracked': 1015,
-        'cracked_percentage': 77.18, 'lm_hash_count': 17,
-        'lm_hash_count_percentage': 1.29,
-        'cluster_count': dict([
-            (2, 16), (3, 11), (4, 5), (5, 5), (6, 5), (7, 4),
-            (9, 1), (11, 2), (12, 1), (13, 2), (14, 1),
-            (15, 1), (18, 2), (19, 2), (23, 1), (25, 1),
-            (28, 2), (30, 1), (37, 1), (40, 1), (53, 1),
-            (54, 1), (59, 1), (69, 1), (74, 1), (137, 1)]),
-        'unique': 318, 'unique_percentage': 24.18, 'empty_password':
-        137, 'empty_password_percentage': 10.41,
-        'average_password_length': 5.47, 'median_password_length':
-        6, 'password_length_count': dict([
-            (0, 137), (3, 7), (4, 28), (5, 106), (6, 411), (7, 183),
-            (8, 143)]),
-        'char_class_count': dict([
-            (0, 137), (1, 570), (2, 308)]),
-        'average_character_classes': 1.16,
-        'top10_passwords': dict([
-            ('', 137), ('12345', 74), ('abc123', 69),
-            ('123456', 59), ('passwd', 54), ('password', 53),
-            ('newpass', 40), ('notused', 37), ('Hockey', 30),
-            ('Maddock', 28)]), 'top10_basewords':
-        dict([
-            ('abc', 71), ('passwd', 54), ('password', 53),
-            ('internet', 41), ('newpass', 40), ('notused', 37),
-            ('hockey', 30), ('mickey', 30), ('maddock', 28),
-            ('newuser', 25)])
-    }
+    expected_f = os.path.join(SCRIPT_PATH, 'hash.txt.json')
+    with open(expected_f, 'r') as fp:
+        expected = json.load(fp)
 
-    print(report)
+    report = create_report(hashfile, outfile)
+    # Effectively convert OrderedDict to dict
+    report = json.loads(json.dumps(report))
+    del expected['meta']
+    del report['meta']
+    #  print(json.dumps(report, indent=2))
     assert report == expected
+
+    out = pretty_print(report['report'])
+    print(out)
+    assert out
+
+    out = pretty_print(report['sensitive'])
+    print(out)
+    assert out
