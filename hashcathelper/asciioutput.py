@@ -22,13 +22,20 @@ def pretty_print(report):
             out.append([value, label])
 
     if out:
-        max_len = max(map(len, (x[0] for x in out)))
-        out = ''.join("%s%s%s\n" % (x[0], ' '*(max_len + 2 - len(x[0])), x[1])
-                      for x in out)
+        out = format_table(out)
     else:
         out = ''
 
     return out + charts
+
+
+def format_table(tab):
+    """Format a list of 2-tuples"""
+
+    max_len = max(map(len, (x[0] for x in tab)))
+    out = ''.join("%s%s%s\n" % (x[0], ' '*(max_len + 2 - len(x[0])), x[1])
+                  for x in tab)
+    return out
 
 
 def histogram(dct, title='', width=50, indent=4):

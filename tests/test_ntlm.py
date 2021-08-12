@@ -10,31 +10,11 @@ import pytest
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-CONFIG = """[DEFAULT]
-
-hashcat_bin = /usr/bin/hashcat
-rule = %(testdir)s/OneRule.rule
-wordlist = %(testdir)s/words
-hash_speed = 60000
-"""
-
-
 @pytest.fixture(scope='session')
 def words():
     with open(os.path.join(SCRIPT_PATH, 'words'), 'r') as fp:
         words = fp.read()
     yield words.splitlines()
-
-
-@pytest.fixture(scope='session')
-def config_file():
-    import tempfile
-    fp = tempfile.NamedTemporaryFile(mode='w', delete=False,
-                                     prefix="hch_configfile")
-    fp.write(CONFIG % {'testdir': SCRIPT_PATH})
-    fp.close()
-    yield fp.name
-    # TODO delete file?
 
 
 @pytest.fixture(scope='session')

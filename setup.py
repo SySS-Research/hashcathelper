@@ -20,10 +20,9 @@ setuptools.setup(
     install_requires=[
         'pyxdg',
         'pycryptodome',
+        'pypsi',
+        'sqlalchemy',
     ],
-    extras_require={
-        'database': ['sqlalchemy'],
-    },
     python_requires='>=3.5',
     tests_require=[
         'pytest',
