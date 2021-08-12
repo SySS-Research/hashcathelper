@@ -69,6 +69,7 @@ def analytics(args):
         args.filter_accounts,
         censor=args.censor,
     )
+
     if not report:
         exit(1)
 
@@ -76,7 +77,8 @@ def analytics(args):
         import json
         out = json.dumps(report, indent=4)
     elif args.format == 'text':
-        out = pretty_print(report)
+        out = pretty_print(report['report'])
+        out += pretty_print(report['sensitive'])
 
     if args.outfile:
         with open(args.outfile, 'w') as f:

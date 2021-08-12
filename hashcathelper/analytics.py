@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 import collections
 import logging
 import re
@@ -12,13 +13,9 @@ labels = dict(
     removed='Accounts removed from analysis',
     accounts='Accounts subject to analysis',
     cracked='Accounts where password was cracked',
-    cracked_percentage='Percentage of accounts where password was cracked',
     lm_hash_count='Accounts with a non-empty LM hash',
-    lm_hash_count_percentage='Percentage of accounts with a non-empty LM hash',
     unique='Accounts with unique password',
-    unique_percentage='Percentage of accounts with unique password',
     empty_password='Accounts with an empty password',
-    empty_password_percentage='Percentage of accounts with an empty password',
     average_password_length='Average length of cracked passwords',
     median_password_length='Median length of cracked passwords',
     top10_passwords='Top 10 Passwords',
@@ -29,9 +26,20 @@ labels = dict(
     password_length_count='Lengths of cracked passwords',
     cluster_count='Cluster sizes',
     user_equals_password='Accounts where username equals the password',
-    user_equals_password_percentage='Percentage of '
-    'accounts where username equals the password',
 )
+
+PATTERN = re.compile(r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$')
+
+
+def parse_user_pass(line):
+    regex = PATTERN.search(line)
+    username = regex.group('username').lower()
+    password = regex.group('password').lower()
+    result = dict(
+        username=username,
+        password=password,
+    )
+    return result
 
 
 def median(lst):
@@ -138,6 +146,7 @@ def prcnt(a, b):
 
 def do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts):
+    """Make sure the right combination of files was passed"""
     if not (hashes or accounts_plus_passwords or passwords):
         log.error("No files specified, nothing to do")
         return {}
@@ -195,9 +204,10 @@ def count_user_equal_password(report, accounts_plus_passwords):
             user = user.split('\\')[1]
         if user.lower() == password.lower():
             count += 1
-    report['user_equals_password'] = count
-    report['user_equals_password_percentage'] = \
-        prcnt(count, len(accounts_plus_passwords))
+    report['user_equals_password'] = (
+        count,
+        prcnt(count, len(accounts_plus_passwords)),
+    )
 
 
 def analyze_hashes(report, hashes, passwords):
@@ -205,16 +215,18 @@ def analyze_hashes(report, hashes, passwords):
     if 'total_accounts' not in report:
         report['total_accounts'] = len(hashes)
     if passwords:
-        report['cracked'] = len(passwords)
-        report['cracked_percentage'] = \
-            prcnt(len(passwords), len(hashes))
+        report['cracked'] = (
+            len(passwords),
+            prcnt(len(passwords), len(hashes)),
+        )
     lm_hash_count = 0
     for line in hashes:
         if ':%s:' % LM_EMPTY not in line:
             lm_hash_count += 1
-    report['lm_hash_count'] = lm_hash_count
-    report['lm_hash_count_percentage'] = \
-        prcnt(lm_hash_count, report['accounts'])
+    report['lm_hash_count'] = (
+        lm_hash_count,
+        prcnt(lm_hash_count, report['accounts']),
+    )
 
     # Clusters
     nt_hashes = [line.split(':')[3] for line in hashes]
@@ -222,18 +234,13 @@ def analyze_hashes(report, hashes, passwords):
 
 
 def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
-    pattern = re.compile(r'([^\\]+\\)?(?P<name>[^:]+):.*$')
-
-    def get_account_name(line):
-        name = pattern.search(line).group('name').lower()
-        return name
 
     filter_accounts = set(line.lower() for line in filter_accounts)
     if accounts_plus_passwords:
         before = len(accounts_plus_passwords)
         accounts_plus_passwords = [
             p for p in accounts_plus_passwords
-            if get_account_name(p) in filter_accounts
+            if parse_user_pass(p)['username'] in filter_accounts
         ]
         after = len(accounts_plus_passwords)
         report['total_accounts'] = before
@@ -241,19 +248,26 @@ def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
     if hashes:
         before = len(hashes)
         hashes = [h for h in hashes
-                  if get_account_name(h) in filter_accounts]
+                  if parse_user_pass(h)['username'] in filter_accounts]
         after = len(hashes)
         report['total_accounts'] = before
         report['removed'] = before - after
 
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
-                  filter_accounts=None, censor=False):
+                  filter_accounts=None, pw_min_length=6):
     log.info("Creating report...")
     report = {}
 
     do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts)
+    meta = {
+        "filename_hashes": hashes,
+        "filename_result": accounts_plus_passwords,
+        "filename_passwords": passwords,
+        "filename_filter": filter_accounts,
+        "timestamp": str(dt.now()),
+    }
 
     # Load data from files
     hashes = load_lines(hashes)
@@ -290,19 +304,38 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     if passwords:
         analyze_passwords(report, passwords)
 
-    if censor:
-        censor_report(report)
-    return report
+    # Move sensitive information
+    sensitive = {}
+    for k in ['top10_passwords', 'top10_basewords']:
+        sensitive[k] = report[k]
+        del report[k]
 
+    # Find accounts with short passwords
+    details = {
+        'empty_password': [],
+        'short_password': [],
+        'user_equals_password': [],
+        'user_similarto_password': [],
+    }
+    for line in accounts_plus_passwords:
+        username = parse_user_pass(line)['username']
+        password = parse_user_pass(line)['password']
+        if len(password) < pw_min_length:
+            details['short_password'].append(username)
+        if not password:
+            details['empty_password'].append(username)
+        if username.lower() == password.lower():
+            details['user_equals_password'].append(username)
+        elif username.lower() in password.lower():
+            details['user_similarto_password'].append(username)
 
-def censor_report(report):
-    sensitive_fields = [
-        'top10_basewords',
-        'top10_passwords',
-    ]
-    for f in sensitive_fields:
-        if f in report:
-            del report[f]
+    result = {
+        'meta': meta,
+        'report': report,
+        'sensitive': sensitive,
+        'details': details,
+    }
+    return result
 
 
 def cluster_analysis(report, values, empty=''):
@@ -317,10 +350,10 @@ def cluster_analysis(report, values, empty=''):
     else:
         total = len(values)
 
-    report['unique'] = sum(1 for _, count in counter.items()
-                           if count == 1)
-    report['unique_percentage'] = prcnt(report['unique'], total)
+    un = sum(1 for _, count in counter.items() if count == 1)
+    report['unique'] = (un, prcnt(un, total))
 
-    report['empty_password'] = counter[empty]
-    report['empty_password_percentage'] = \
-        prcnt(report['empty_password'], total)
+    report['empty_password'] = (
+        counter[empty],
+        prcnt(counter[empty], total),
+    )

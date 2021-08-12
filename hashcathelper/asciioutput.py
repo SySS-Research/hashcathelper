@@ -8,19 +8,26 @@ def pretty_print(report):
     out = ''
     simple_values = [
         [v, labels.get(k, k)] for k, v in report.items()
-        if not (isinstance(v, (list, dict)))
+        if not isinstance(v, (list, dict))
+        or (isinstance(v, list) and len(v) == 2)
     ]
+    for i, v in enumerate(simple_values):
+        if (isinstance(v[0], list) and len(v[0]) == 2):
+            simple_values[i][0] = "%d (%.2f%%)" % tuple(v[0])
+
     try:
         import tabulate
         out += tabulate.tabulate(simple_values) + "\n"
     except ImportError:
         log.error("Package 'tabulate' not installed")
         for val in simple_values:
-            print("%s\t%s" % (val[0], val[1]))
+            print("%s%s%s" % (val[0], ' '*(15-len("%s" % val[0])), val[1]))
+
     for k, v in report.items():
         if isinstance(v, dict):
             out += histogram(v, title=labels.get(k, k))
             out += "\n"
+
     return out
 
 
@@ -31,7 +38,7 @@ def histogram(dct, title='', width=50, indent=4):
     maxval = max(dct.values())
     maxwidth = max([len(str(k)) for k in dct.keys()])
     blocks = [
-        '',
+        '',        # 0/8
         '\u258F',  # 1/8
         '\u258E',  # 2/8
         '\u258D',  # 3/8
