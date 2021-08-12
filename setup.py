@@ -22,7 +22,6 @@ setuptools.setup(
         'pycryptodome',
     ],
     extras_require={
-        'tables': ['tabulate'],
         'database': ['sqlalchemy'],
     },
     python_requires='>=3.5',

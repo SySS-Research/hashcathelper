@@ -5,30 +5,30 @@ log = logging.getLogger(__name__)
 
 def pretty_print(report):
     from .analytics import labels
-    out = ''
-    simple_values = [
-        [v, labels.get(k, k)] for k, v in report.items()
-        if not isinstance(v, (list, dict))
-        or (isinstance(v, list) and len(v) == 2)
-    ]
-    for i, v in enumerate(simple_values):
-        if (isinstance(v[0], list) and len(v[0]) == 2):
-            simple_values[i][0] = "%d (%.2f%%)" % tuple(v[0])
+    out = []
 
-    try:
-        import tabulate
-        out += tabulate.tabulate(simple_values) + "\n"
-    except ImportError:
-        log.error("Package 'tabulate' not installed")
-        for val in simple_values:
-            print("%s%s%s" % (val[0], ' '*(15-len("%s" % val[0])), val[1]))
-
+    charts = ""
     for k, v in report.items():
         if isinstance(v, dict):
-            out += histogram(v, title=labels.get(k, k))
-            out += "\n"
+            charts += histogram(v, title=labels.get(k, k))
+            charts += "\n"
+        else:
+            label = labels.get(k, k)
+            value = v
+            if (isinstance(value, list) and len(value) == 2):
+                value = "%d (%.2f%%)" % tuple(value)
+            else:
+                value = str(value)
+            out.append([value, label])
 
-    return out
+    if out:
+        max_len = max(map(len, (x[0] for x in out)))
+        out = ''.join("%s%s%s\n" % (x[0], ' '*(max_len + 2 - len(x[0])), x[1])
+                      for x in out)
+    else:
+        out = ''
+
+    return out + charts
 
 
 def histogram(dct, title='', width=50, indent=4):
