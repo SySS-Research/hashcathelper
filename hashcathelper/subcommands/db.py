@@ -186,8 +186,14 @@ def stats(args):
     result = get_stats(r, all_entries)
 
     if args.format == 'text':
-        from ..asciioutput import format_table
-        out = format_table(result)
+        from tabulate import tabulate
+        from hashcathelper.consts import labels
+        out = tabulate(
+            [[labels.get(k, k)]+v for k, v in result.items()],
+            headers=[
+                "Key", "Value", "Mean", "Std. Dev.", "Perc.",
+            ],
+        )
 
     args.outfile.write(out)
 
@@ -274,9 +280,9 @@ def get_stats(entry, all_entries):
             ]
         else:
             result[q] = [
-                entry[q],
-                mean(nums),
-                stddev(nums),
+                int(100 * entry[q])/100,
+                int(100 * mean(nums))/100,
+                int(100 * stddev(nums))/100,
                 p,
             ]
 

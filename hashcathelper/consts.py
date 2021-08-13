@@ -1,3 +1,25 @@
+labels = dict(
+    total_accounts="Total number of accounts",
+    removed='Accounts removed from analysis',
+    accounts='Accounts subject to analysis',
+    cracked='Accounts where password was cracked',
+    lm_hash_count='Accounts with a non-empty LM hash',
+    nonunique='Accounts with nonunique password',
+    empty_password='Accounts with an empty password',
+    average_password_length='Average length of cracked passwords',
+    median_password_length='Median length of cracked passwords',
+    top10_passwords='Top 10 Passwords',
+    top10_basewords='Top 10 Basewords',
+    char_class_count='Character classes',
+    average_character_classes='Average number of character classes of'
+    ' cracked passwords',
+    password_length_count='Lengths of cracked passwords',
+    cluster_count='Cluster sizes',
+    user_equals_password='Accounts where username equals the password',
+    largest_baseword_cluster='Largest baseword cluster',
+)
+
+
 LM_EMPTY = 'aad3b435b51404eeaad3b435b51404ee'
 NT_EMPTY = '31d6cfe0d16ae931b73c59d7e0c089c0'
 

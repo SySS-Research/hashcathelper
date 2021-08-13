@@ -22,6 +22,7 @@ setuptools.setup(
         'pycryptodome',
         'pypsi',
         'sqlalchemy',
+        'tabulate',
     ],
     python_requires='>=3.5',
     tests_require=[
