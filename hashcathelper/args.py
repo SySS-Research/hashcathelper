@@ -3,7 +3,7 @@ import pkgutil
 from importlib import import_module
 import logging
 
-from ._meta import __version__, __doc__
+from hashcathelper._meta import __version__, __doc__
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ def subcommand(args=[], parent=subparsers):
 
 
 def parse_args(argv=None):
-    from . import subcommands
+    from hashcathelper import subcommands
     for importer, modname, _ in pkgutil.iter_modules(subcommands.__path__):
         import_module('..subcommands.' + modname, __name__)
     args = parser.parse_args(argv)

@@ -3,7 +3,7 @@ import collections
 import logging
 import re
 
-from .consts import NT_EMPTY, LM_EMPTY
+from hashcathelper.consts import NT_EMPTY, LM_EMPTY
 
 log = logging.getLogger(__name__)
 

@@ -55,7 +55,7 @@ def submit(session,
            hashcat_version,
            data):
     from datetime import datetime as dt
-    from ._meta import __version__
+    from hashcathelper._meta import __version__
     try:
         cracking_date = dt.fromisoformat(data['meta']['timestamp'])
     except (KeyError, ValueError):

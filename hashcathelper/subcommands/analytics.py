@@ -1,4 +1,4 @@
-from ..args import subcommand, argument
+from hashcathelper.args import subcommand, argument
 
 args = []
 
@@ -51,8 +51,8 @@ args.append(argument(
 @subcommand(args)
 def analytics(args):
     '''Output interesting statistics'''
-    from ..analytics import create_report
-    from ..asciioutput import pretty_print
+    from hashcathelper.analytics import create_report
+    from hashcathelper.asciioutput import pretty_print
 
     report = create_report(
         args.hashes,

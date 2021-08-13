@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 
-from ..args import subcommand, argument, subparsers_map, parse_config
+from hashcathelper.args import subcommand, argument, subparsers_map, parse_config
 
 log = logging.getLogger(__name__)
 args = []
@@ -37,7 +37,7 @@ def submit(args):
     '''Submit a result to the database'''
     import json
 
-    from ..sql import submit
+    from hashcathelper.sql import submit
 
     session = get_session(args)
     data = json.load(args.infile)
@@ -133,7 +133,7 @@ args_query.append(argument(
 @subcommand(args_query, parent=subparsers)
 def query(args):
     '''List all entries'''
-    from ..sql import Report
+    from hashcathelper.sql import Report
 
     s = get_session(args)
     out = []

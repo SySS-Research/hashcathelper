@@ -1,6 +1,6 @@
 import logging
 
-from ..args import subcommand, argument, parse_config
+from hashcathelper.args import subcommand, argument, parse_config
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def ntlm(args):
     import shutil
     import tempfile
 
-    from ..hashcat import crack_pwdump
+    from hashcathelper.hashcat import crack_pwdump
 
     config = parse_config(args.config)
 
@@ -103,7 +103,7 @@ def decompile_file(password_file, hashfiles, suffix):
 
     Returns the resulting filenames
     """
-    from ..utils import get_nthash
+    from hashcathelper.utils import get_nthash
 
     # Create dict with original usernames and hashes and create file
     # descriptors
