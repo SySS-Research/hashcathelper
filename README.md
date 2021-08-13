@@ -101,6 +101,9 @@ wordlist = /home/cracker/wordlists/crackstation.txt
 
 # Hash speed of the machine
 hash_speed = 60000
+
+# URI to database
+db_uri = sqlite:////home/cracker/.local/share/hashcathelper/stats.sqlite
 ```
 
 The hash speed characterizes the power of the machine. Unit: MH/s
