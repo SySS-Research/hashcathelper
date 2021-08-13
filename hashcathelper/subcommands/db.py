@@ -1,7 +1,5 @@
 import argparse
 import logging
-import os
-import subprocess
 
 from hashcathelper.args import subcommand, argument, subparsers_map, \
         parse_config
@@ -59,6 +57,9 @@ def submit(args):
 
 
 def ask_questions(config):
+    import subprocess
+    import os
+
     import pypsi.wizard as wiz
     import pypsi.shell
 
@@ -139,7 +140,8 @@ def query(args):
     s = get_session(args)
     out = []
     for r in s.query(Report).order_by(Report.id.asc()).all():
-        out.append([r.id, r.submission_date, r.submitter_email])
+        out.append([r.id, r.submission_date, r.submitter_email,
+                    r.total_accounts])
 
     for o in out:
         print("%s\t%s\t%s" % tuple(o))
@@ -201,7 +203,33 @@ def get_session(args):
     return session
 
 
+def normalize(entry, attr):
+    return getattr(entry, attr)/entry.total_accounts
+
+
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
+
+
+def stddev(numbers):
+    mu = mean(numbers)
+    variance = sum([((x - mu) ** 2) for x in numbers]) / len(numbers)
+    stddev = variance ** 0.5
+    return stddev
+
+
+def percentile(x, numbers, higher_is_better=False):
+    if higher_is_better:
+        s = sum(n > x for n in numbers)
+    else:
+        s = sum(n < x for n in numbers)
+    result = s/len(numbers)*100
+    return int(100*result)/100
+
+
 def get_stats(entry, all_entries):
+    from hashcathelper.utils import prcnt
+
     relative_quantities = [
         'cracked',
         'unique',
@@ -211,7 +239,51 @@ def get_stats(entry, all_entries):
         'largest_baseword_cluster',
     ]
     absolute_quantities = [
-        'avg_pwd_length',
+        'avg_pw_length',
+    ]
+    higher_is_better = [
+        'unique',
     ]
 
-    # TODO <-- continue here
+    # Copy ORMs to dicts
+    entry_ = {}
+    for q in relative_quantities:
+        entry_[q] = normalize(entry, q)
+    for q in absolute_quantities:
+        entry_[q] = getattr(entry, q)
+    all_entries_ = []
+    for e in all_entries:
+        e_ = {}
+        for q in relative_quantities:
+            e_[q] = normalize(e, q)
+        for q in absolute_quantities:
+            e_[q] = getattr(e, q)
+        all_entries_.append(e_)
+    entry = entry_
+    all_entries = all_entries_
+
+    # Compute the stats
+    result = {}
+    for q in relative_quantities+absolute_quantities:
+        nums = [e[q] for e in all_entries]
+        p = int(percentile(
+            entry[q],
+            nums,
+            higher_is_better=q in higher_is_better,
+        ))
+        if q in relative_quantities:
+            result[q] = [
+                prcnt(entry[q], 1),
+                prcnt(mean(nums), 1),
+                prcnt(stddev(nums), 1),
+                p,
+            ]
+        else:
+            result[q] = [
+                entry[q],
+                mean(nums),
+                stddev(nums),
+                p,
+            ]
+
+    return result
