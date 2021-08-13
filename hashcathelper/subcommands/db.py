@@ -211,6 +211,7 @@ def stats(args):
         import json
         out = json.dumps(result, indent=2)
 
+    out += '\n'
     args.outfile.write(out)
 
 
