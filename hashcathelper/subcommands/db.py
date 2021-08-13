@@ -188,8 +188,16 @@ def stats(args):
     if args.format == 'text':
         from tabulate import tabulate
         from hashcathelper.consts import labels
+        data = [[labels.get(k, k) + ' (%)']+v for k, v in result.items()]
+
+        # Remove percentage on average pw length
+        data[-1][0] = data[-1][0][:-4]
+
+        # Higher is better for average pw length
+        data[-1][-1] = 100 - data[-1][-1]
+
         out = tabulate(
-            [[labels.get(k, k)]+v for k, v in result.items()],
+            data,
             headers=[
                 "Key", "Value", "Mean", "Std. Dev.", "Perc.",
             ],
