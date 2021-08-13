@@ -57,7 +57,8 @@ def submit(session,
     from datetime import datetime as dt
     from hashcathelper._meta import __version__
     try:
-        cracking_date = dt.fromisoformat(data['meta']['timestamp'])
+        timestamp = data['meta']['timestamp']
+        cracking_date = dt.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
     except (KeyError, ValueError):
         log.error("Failed to parse cracking date")
         cracking_date = None
