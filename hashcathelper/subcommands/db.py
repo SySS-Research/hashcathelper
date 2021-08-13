@@ -103,7 +103,8 @@ def ask_questions(config):
     prompt = wiz.PromptWizard(
         'Hashcathelper Submit',
         """You are about to submit a report from hashcathelper to the database.
-Please make sure the data is of high quality.""",
+Please make sure the data is of high quality and that inactive account have
+been filtered.""",
         steps=steps,
     )
 
