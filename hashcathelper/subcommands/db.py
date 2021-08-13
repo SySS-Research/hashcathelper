@@ -132,7 +132,7 @@ args_query.append(argument(
 
 @subcommand(args_query, parent=subparsers)
 def query(args):
-    '''Query the database'''
+    '''List all entries'''
     from ..sql import Report
 
     s = get_session(args)
@@ -171,18 +171,24 @@ args_stats.append(argument(
 def stats(args):
     '''Show statistics for one database entry'''
     from ..sql import Report
-    from ..asciioutput import format_table
 
     s = get_session(args)
     if args.id:
         r = s.query(Report).filter_by(id=args.id).one()
     else:
         r = s.query(Report).order_by(Report.id.desc()).first()
+    all_entries = s.query(Report).all()
 
-    out = [[col.name, getattr(r, col.name)]
-           for col in r.__table__.columns]
-    out = format_table(out)
-    print(out)
+    result = get_stats(r, all_entries)
+
+    print(result)
+
+    #  out_single = [[col.name, getattr(r, col.name)]
+    #                for col in r.__table__.columns]
+    #  if args.format == 'text':
+    #      from ..asciioutput import format_table
+    #      out_single = format_table(out_single)
+    #      print(out_single)
 
 
 def get_session(args):
@@ -192,3 +198,19 @@ def get_session(args):
         args.db_uri = config.db_uri
     session = get_session(args.db_uri)
     return session
+
+
+def get_stats(entry, all_entries):
+    relative_quantities = [
+        'cracked',
+        'unique',
+        'user_equals_password',
+        'non_empty_lm_hash',
+        'empty_password',
+        'largest_baseword_cluster',
+    ]
+    absolute_quantities = [
+        'avg_pwd_length',
+    ]
+
+    # TODO <-- continue here

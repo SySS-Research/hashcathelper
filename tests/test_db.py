@@ -55,6 +55,7 @@ def test_submit(config_file, monkeypatch):
     assert r.total_accounts == expected['report']['accounts']
     assert r.submitter_email == answers.submitter_email
 
+    # Test queries
     main([
         '--config',
         config_file,
