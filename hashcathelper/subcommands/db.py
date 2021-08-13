@@ -151,7 +151,8 @@ args_stats = []
 
 args_stats.append(argument(
     '-o', '--outfile',
-    default=None,
+    type=argparse.FileType(mode='w'),
+    default='-',
     help="path to an output file (default: stdout)",
 ))
 
@@ -184,14 +185,11 @@ def stats(args):
 
     result = get_stats(r, all_entries)
 
-    print(result)
+    if args.format == 'text':
+        from ..asciioutput import format_table
+        out = format_table(result)
 
-    #  out_single = [[col.name, getattr(r, col.name)]
-    #                for col in r.__table__.columns]
-    #  if args.format == 'text':
-    #      from ..asciioutput import format_table
-    #      out_single = format_table(out_single)
-    #      print(out_single)
+    args.outfile.write(out)
 
 
 def get_session(args):
@@ -232,7 +230,7 @@ def get_stats(entry, all_entries):
 
     relative_quantities = [
         'cracked',
-        'unique',
+        'nonunique',
         'user_equals_password',
         'lm_hash_count',
         'empty_password',
@@ -240,9 +238,6 @@ def get_stats(entry, all_entries):
     ]
     absolute_quantities = [
         'average_password_length',
-    ]
-    higher_is_better = [
-        'unique',
     ]
 
     # Copy ORMs to dicts
@@ -269,7 +264,6 @@ def get_stats(entry, all_entries):
         p = int(percentile(
             entry[q],
             nums,
-            higher_is_better=q in higher_is_better,
         ))
         if q in relative_quantities:
             result[q] = [

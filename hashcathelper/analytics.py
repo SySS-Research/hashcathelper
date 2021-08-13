@@ -15,7 +15,7 @@ labels = dict(
     accounts='Accounts subject to analysis',
     cracked='Accounts where password was cracked',
     lm_hash_count='Accounts with a non-empty LM hash',
-    unique='Accounts with unique password',
+    nonunique='Accounts with nonunique password',
     empty_password='Accounts with an empty password',
     average_password_length='Average length of cracked passwords',
     median_password_length='Median length of cracked passwords',
@@ -347,8 +347,8 @@ def cluster_analysis(report, values, empty=''):
     else:
         total = len(values)
 
-    un = sum(1 for _, count in counter.items() if count == 1)
-    report['unique'] = (un, prcnt(un, total))
+    nonunique = sum(1 for _, count in counter.items() if count > 1)
+    report['nonunique'] = (nonunique, prcnt(nonunique, total))
 
     report['empty_password'] = (
         counter[empty],

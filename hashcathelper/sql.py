@@ -40,7 +40,7 @@ class Report(Base):
 
     accounts = Column(Integer)
     cracked = Column(Integer)
-    unique = Column(Integer)
+    nonunique = Column(Integer)
     user_equals_password = Column(Integer)
     lm_hash_count = Column(Integer)
     empty_password = Column(Integer)
@@ -80,7 +80,7 @@ def submit(session,
         hashcat_version=hashcat_version,
         accounts=data['report']['accounts'],
         cracked=get_value('cracked'),
-        unique=get_value('unique'),
+        nonunique=get_value('nonunique'),
         user_equals_password=get_value('user_equals_password'),
         lm_hash_count=get_value('lm_hash_count'),
         empty_password=get_value('empty_password'),

@@ -119,7 +119,7 @@ def create_report(accounts, seed=0):
         'user_equals_password': (N/100, N/50),
         'lm_hash_count': (N/30, N/50),
         'cracked': (N/3, N/5),
-        'unique': (N*.8, N*.3),
+        'nonunique': (N*.3, N*.1),
         'empty_password': (N/100, N/50),
     }.items():
         val = min(int(abs(random.gauss(*parameters))), N)
@@ -128,7 +128,7 @@ def create_report(accounts, seed=0):
     return result
 
 
-def test_stats(config_file, monkeypatch):
+def test_stats(config_file, capsys):
     from hashcathelper.__main__ import main
     from hashcathelper.args import parse_config
     from hashcathelper.sql import get_session, Report, submit
@@ -147,3 +147,7 @@ def test_stats(config_file, monkeypatch):
         'db',
         'stats',
     ])
+    capture = capsys.readouterr()
+    print(capture.out)
+    assert capture.out
+    assert False
