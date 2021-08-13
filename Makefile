@@ -2,8 +2,6 @@ help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
 	@echo "lint - check style with flake8"
 	@echo "test - run tests"
-	#  @echo "docs - generate Sphinx HTML documentation, including API docs"
-	#  @echo "confluence - build and publish the Sphinx Confluence documentation"
 	@echo "deploy - package and upload a release to hashcat01"
 	@echo "install - install the package to the user's Python's site-packages"
 	@echo "help - show this help and exit"
