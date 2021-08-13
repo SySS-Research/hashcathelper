@@ -63,13 +63,13 @@ def ask_questions(config):
     print("="*79)
     print(
         """You are about to submit a report from hashcathelper to the database.
-Please make sure the data is of high quality and that inactive account have
+Please make sure the data is of high quality and that inactive accounts have
 been filtered."""
     )
     print("="*79)
-    print('\n\n')
+    print('\n')
     print('Press CTRL-C to abort')
-    print('\n\n')
+    print('\n')
 
     result = {}
     result['submitter_email'] = ask_question(
