@@ -27,7 +27,7 @@ parser.add_argument(
     '-l', '--log-level',
     choices=['INFO', 'WARNING', 'ERROR', 'DEBUG'],
     default='INFO',
-    help="log level (default: %(default)s",
+    help="log level (default: %(default)s)",
 )
 
 
