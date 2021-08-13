@@ -239,6 +239,7 @@ def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
         after = len(hashes)
         report['total_accounts'] = before
         report['removed'] = before - after
+    return accounts_plus_passwords
 
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
@@ -283,7 +284,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         count_user_equal_password(report, accounts_plus_passwords)
 
     # Remove account names now that they are filtered
-    if not passwords:
+    if not passwords and accounts_plus_passwords:
         passwords = [':'.join(line.split(':')[1:])
                      for line in accounts_plus_passwords]
 
