@@ -197,9 +197,19 @@ def analyze_hashes(report, hashes, passwords):
             prcnt(len(passwords), len(hashes)),
         )
     lm_hash_count = 0
+    computer_acc_count = 0
     for line in hashes:
         if ':%s:' % LM_EMPTY not in line:
             lm_hash_count += 1
+        if re.match(r'^[^:]*\$:.*$', line):
+            computer_acc_count += 1
+
+    if computer_acc_count:
+        log.warning(
+            "%d computer accounts found in hash file. You should remove these."
+            % computer_acc_count
+        )
+
     report['lm_hash_count'] = (
         lm_hash_count,
         prcnt(lm_hash_count, report['accounts']),
@@ -263,6 +273,10 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         )
     else:
         report['removed'] = 0
+        log.warning(
+            "No accounts filtered. Are you sure?"
+            " At least inactive accounts should be filtered."
+        )
 
     # Count accounts where user==password
     if accounts_plus_passwords:
