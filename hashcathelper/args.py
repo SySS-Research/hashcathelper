@@ -12,7 +12,8 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    '-v', '--version', action='version', version='sydocgen %s' % __version__,
+    '-v', '--version', action='version',
+    version='hashcathelper %s' % __version__,
 )
 
 parser.add_argument(
