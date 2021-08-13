@@ -134,9 +134,8 @@ def test_report():
     report = create_report(hashfile, outfile)
     # Effectively convert OrderedDict to dict
     report = json.loads(json.dumps(report))
-    del expected['meta']
     del report['meta']
-    #  print(json.dumps(report, indent=2))
+    print(json.dumps(report, indent=2))
     assert report == expected
 
     out = pretty_print(report['report'])

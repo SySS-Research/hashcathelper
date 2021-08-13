@@ -304,7 +304,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     # Find accounts with short passwords
     details = {
         'empty_password': [],
-        'short_password': [],
+        'short_password': {i: [] for i in range(pw_min_length)},
         'user_equals_password': [],
         'user_similarto_password': [],
     }
@@ -312,9 +312,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         username = parse_user_pass(line)['username']
         password = parse_user_pass(line)['password']
         if len(password) < pw_min_length:
-            details['short_password'].append(username)
-        if not password:
-            details['empty_password'].append(username)
+            details['short_password'][len(password)].append(username)
         if username.lower() == password.lower():
             details['user_equals_password'].append(username)
         elif username.lower() in password.lower():
