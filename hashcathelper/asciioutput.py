@@ -4,7 +4,7 @@ log = logging.getLogger(__name__)
 
 
 def pretty_print(report):
-    from hashcathelper.analytics import labels
+    from hashcathelper.consts import labels
     out = []
 
     charts = ""
