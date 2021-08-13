@@ -4,6 +4,7 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
+from hashcathelper.utils import prcnt
 
 log = logging.getLogger(__name__)
 
@@ -138,10 +139,6 @@ def load_lines(path):
 
 def sort_dict(dct):
     return collections.OrderedDict(sorted(dct.items()))
-
-
-def prcnt(a, b):
-    return int(a/b * 100 * 100)/100
 
 
 def do_sanity_check(hashes, accounts_plus_passwords, passwords,

@@ -1,3 +1,11 @@
+def prcnt(a, b=None):
+    """Return percentage rounded to two decimals"""
+    if b:
+        return int(a/b * 100 * 100)/100
+    else:
+        return int(a * 100)/100
+
+
 def get_nthash(password):
     """Compute NT hash of password (must be bytes)"""
     import hashlib
