@@ -144,7 +144,7 @@ def query(args):
                     r.total_accounts])
 
     for o in out:
-        print("%s\t%s\t%s" % tuple(o))
+        print('\t'.join(["%s"] * len(o)) % tuple(o))
 
 
 args_stats = []
