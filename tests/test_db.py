@@ -132,14 +132,14 @@ def test_stats(config_file, capsys):
     from hashcathelper.__main__ import main
     from hashcathelper.args import parse_config
     from hashcathelper.sql import get_session, Report, submit
+    from hashcathelper.subcommands.db import get_stats
+
     config = parse_config(config_file)
     s = get_session(config.db_uri)
     random.seed(0)
     for i in range(100):
         data = create_report(random.randint(200, 200000), seed=i)
         submit(s, 'foo', 'wordlist', 'rule', '0.0', data)
-
-    s.query(Report).all()
 
     main([
         '--config',
@@ -150,4 +150,33 @@ def test_stats(config_file, capsys):
     capture = capsys.readouterr()
     print(capture.out)
     assert capture.out
-    assert False
+
+    expected = {
+        1: {'cracked': [13.0, 35.72, 18.48, 86], 'nonunique':
+            [29.27, 29.22, 10.55, 54], 'user_equals_password':
+            [0.35, 1.89, 1.41, 91], 'lm_hash_count': [4.07, 3.42,
+                                                      1.84, 33],
+            'empty_password': [1.35, 1.63, 1.25, 50],
+            'largest_baseword_cluster': [11.88, 9.78, 1.93, 15],
+            'average_password_length': [3.81, 8.58, 2.93, 93]},
+        10: {'cracked': [56.95, 35.72, 18.48, 9], 'nonunique':
+             [30.47, 29.22, 10.55, 43],
+             'user_equals_password': [3.58, 1.89, 1.41, 9], 'lm_hash_count':
+             [6.4, 3.42, 1.84, 6], 'empty_password': [1.65, 1.63, 1.25, 43],
+             'largest_baseword_cluster': [8.11, 9.78, 1.93, 77],
+             'average_password_length': [8.66, 8.58, 2.93, 52]},
+        20: {'cracked': [19.87, 35.72, 18.48, 73], 'nonunique':
+             [51.03, 29.22, 10.55, 1],
+             'user_equals_password': [1.37, 1.89, 1.41, 60], 'lm_hash_count':
+             [3.02, 3.42, 1.84, 53], 'empty_password': [0.72, 1.63, 1.25, 70],
+             'largest_baseword_cluster': [8.44, 9.78, 1.93, 71],
+             'average_password_length': [3.28, 8.58, 2.93, 95]},
+    }
+
+    s = get_session(config.db_uri)
+    for i, val in expected.items():
+        r = s.query(Report).filter_by(id=i).one()
+        all_entries = s.query(Report).all()
+        result = get_stats(r, all_entries)
+        print(result)
+        assert result == val
