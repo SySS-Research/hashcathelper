@@ -9,12 +9,13 @@ help:
 	@echo "help - show this help and exit"
 
 deploy: hashcathelper.pyz
-	@scp hashcathelper.pyz hashcat01:.local/bin/
+	@scp hashcathelper.pyz hashcat01:.local/bin/hashcathelper
 
 hashcathelper.pyz: hashcathelper/
 	@$(eval TEMP_DIR := $(shell mktemp -d --suffix=.hashcathelper))
-	pip3 install --system . --upgrade --target ${TEMP_DIR}
-	@python3 -m zipapp ${TEMP_DIR} -m hashcathelper.__main__.py:main -p python3 --output hashcathelper.pyz
+	pip3 install --system . --upgrade --target "${TEMP_DIR}"
+	@python3 -m zipapp "${TEMP_DIR}" -m hashcathelper.__main__.py:main -p python3 --output hashcathelper.pyz
+	@rm -rf "${TEMP_DIR}"
 
 clean:
 	@rm -rf build dist *.egg-info
