@@ -3,7 +3,8 @@ import logging
 import os
 import subprocess
 
-from hashcathelper.args import subcommand, argument, subparsers_map, parse_config
+from hashcathelper.args import subcommand, argument, subparsers_map, \
+        parse_config
 
 log = logging.getLogger(__name__)
 args = []
@@ -170,7 +171,7 @@ args_stats.append(argument(
 @subcommand(args_stats, parent=subparsers)
 def stats(args):
     '''Show statistics for one database entry'''
-    from ..sql import Report
+    from hashcathelper.sql import Report
 
     s = get_session(args)
     if args.id:
@@ -192,7 +193,7 @@ def stats(args):
 
 
 def get_session(args):
-    from ..sql import get_session
+    from hashcathelper.sql import get_session
     config = parse_config(args.config)
     if not args.db_uri:
         args.db_uri = config.db_uri
