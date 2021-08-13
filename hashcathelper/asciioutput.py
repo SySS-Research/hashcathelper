@@ -15,7 +15,7 @@ def pretty_print(report):
         else:
             label = labels.get(k, k)
             value = v
-            if (isinstance(value, list) and len(value) == 2):
+            if (isinstance(value, (list, tuple)) and len(value) == 2):
                 value = "%d (%.2f%%)" % tuple(value)
             else:
                 value = str(value)
