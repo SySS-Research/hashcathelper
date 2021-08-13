@@ -202,6 +202,9 @@ def stats(args):
                 "Key", "Value", "Mean", "Std. Dev.", "Perc.",
             ],
         )
+    elif args.format == 'json':
+        import json
+        out = json.dumps(result, indent=2)
 
     args.outfile.write(out)
 

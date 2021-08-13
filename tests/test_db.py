@@ -151,6 +151,17 @@ def test_stats(config_file, capsys):
     print(capture.out)
     assert capture.out
 
+    main([
+        '--config',
+        config_file,
+        'db',
+        'stats',
+        '--format', 'json',
+    ])
+    capture = capsys.readouterr()
+    print(capture.out)
+    assert capture.out
+
     expected = {
         1: {'cracked': [13.0, 35.72, 18.48, 86], 'nonunique':
             [29.27, 29.22, 10.55, 54], 'user_equals_password':
