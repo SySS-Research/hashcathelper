@@ -20,7 +20,6 @@ setuptools.setup(
     install_requires=[
         'pyxdg',
         'pycryptodome',
-        'pypsi',
         'sqlalchemy',
         'tabulate',
         'importlib-metadata<=2.1.1',

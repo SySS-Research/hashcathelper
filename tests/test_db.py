@@ -2,7 +2,6 @@
 Test the `db` subcommand
 """
 
-from collections import namedtuple
 import os
 import json
 import random
@@ -17,15 +16,11 @@ def test_submit(config_file, monkeypatch):
     from hashcathelper.args import parse_config
     from hashcathelper.sql import get_session, Report
 
-    Answers = namedtuple(
-        'Answers',
-        'submitter_email wordlist rule_set hashcat_version',
-    )
-    answers = Answers(
-        'foo@bar.com',
-        'crackstation.txt',
-        'OneRule.rule',
-        'v6.0.1',
+    answers = dict(
+        submitter_email='foo@bar.com',
+        wordlist='crackstation.txt',
+        rule_set='OneRule.rule',
+        hashcat_version='v6.0.1',
     )
 
     def mock_ask_questions(config):
@@ -54,7 +49,7 @@ def test_submit(config_file, monkeypatch):
 
     print(vars(r))
     assert r.accounts == expected['report']['accounts']
-    assert r.submitter_email == answers.submitter_email
+    assert r.submitter_email == answers['submitter_email']
 
     # Test queries
     main([

@@ -46,10 +46,10 @@ def submit(args):
 
     id_ = submit(
         session,
-        questions.submitter_email,
-        questions.wordlist,
-        questions.rule_set,
-        questions.hashcat_version,
+        questions['submitter_email'],
+        questions['wordlist'],
+        questions['rule_set'],
+        questions['hashcat_version'],
         data,
     )
 
@@ -60,33 +60,32 @@ def ask_questions(config):
     import subprocess
     import os
 
-    import pypsi.wizard as wiz
-    import pypsi.shell
+    print("="*79)
+    print(
+        """You are about to submit a report from hashcathelper to the database.
+Please make sure the data is of high quality and that inactive account have
+been filtered."""
+    )
+    print("="*79)
+    print('\n\n')
+    print('Press CTRL-C to abort')
+    print('\n\n')
 
-    steps = []
-
-    steps.append(wiz.WizardStep(
-        'submitter_email',
-        'Your e-mail just in case',
+    result = {}
+    result['submitter_email'] = ask_question(
         "Please provide your e-mail address in case questions come up"
         " (optional)",
-    ))
+    )
 
-    steps.append(wiz.WizardStep(
-        'wordlist',
+    result['wordlist'] = ask_question(
         'The wordlist you used',
-        "Just the name of the wordlist in case you didn't use the default"
-        " wordlist that is configured on this system",
         default=os.path.basename(config.wordlist),
-    ))
+    )
 
-    steps.append(wiz.WizardStep(
-        'rule_set',
-        'The wordlist you used',
-        "Just the name of the rule set in case you didn't use the default"
-        " rule set that is configured on this system",
+    result['rule_set'] = ask_question(
+        'The rule set you used',
         default=os.path.basename(config.rule),
-    ))
+    )
 
     try:
         hashcat_version = subprocess.check_output(
@@ -94,26 +93,32 @@ def ask_questions(config):
         ).decode().strip()
     except FileNotFoundError:
         hashcat_version = 'unknown'
-    steps.append(wiz.WizardStep(
-        'hashcat_version',
+
+    result['hashcat_version'] = ask_question(
         'The version of hashcat you used',
-        "Version of hashcat you used for cracking in case you used another"
-        " system",
         default=hashcat_version,
-    ))
-
-    prompt = wiz.PromptWizard(
-        'Hashcathelper Submit',
-        """You are about to submit a report from hashcathelper to the database.
-Please make sure the data is of high quality and that inactive account have
-been filtered.""",
-        steps=steps,
     )
 
-    result = prompt.run(
-        pypsi.shell.Shell()
-    )
     return result
+
+
+def ask_question(description, default=None, valid=None):
+    print(description)
+
+    while True:
+        if default:
+            prompt = '[%s] > ' % default
+        else:
+            prompt = '> '
+        answer = input(prompt)
+        if not answer:
+            answer = default
+        if valid and answer not in valid:
+            print("Invalid answers. Allowed: %s" % valid)
+        else:
+            break
+
+    return answer
 
 
 args_query = []
