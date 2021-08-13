@@ -38,13 +38,13 @@ class Report(Base):
     hashcathelper_version = Column(String)
     hashcat_version = Column(String)
 
-    total_accounts = Column(Integer)
+    accounts = Column(Integer)
     cracked = Column(Integer)
     unique = Column(Integer)
     user_equals_password = Column(Integer)
-    non_empty_lm_hash = Column(Integer)
+    lm_hash_count = Column(Integer)
     empty_password = Column(Integer)
-    avg_pw_length = Column(Float)
+    average_password_length = Column(Float)
     largest_baseword_cluster = Column(Integer)
 
 
@@ -78,13 +78,13 @@ def submit(session,
         rule_set=rule_set,
         hashcathelper_version=__version__,
         hashcat_version=hashcat_version,
-        total_accounts=data['report']['accounts'],
+        accounts=data['report']['accounts'],
         cracked=get_value('cracked'),
         unique=get_value('unique'),
         user_equals_password=get_value('user_equals_password'),
-        non_empty_lm_hash=get_value('lm_hash_count'),
+        lm_hash_count=get_value('lm_hash_count'),
         empty_password=get_value('empty_password'),
-        avg_pw_length=data['report']['average_password_length'],
+        average_password_length=data['report']['average_password_length'],
         largest_baseword_cluster=largest_cluster,
     )
 

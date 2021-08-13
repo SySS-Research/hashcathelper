@@ -141,7 +141,7 @@ def query(args):
     out = []
     for r in s.query(Report).order_by(Report.id.asc()).all():
         out.append([r.id, r.submission_date, r.submitter_email,
-                    r.total_accounts])
+                    r.accounts])
 
     for o in out:
         print('\t'.join(["%s"] * len(o)) % tuple(o))
@@ -204,7 +204,7 @@ def get_session(args):
 
 
 def normalize(entry, attr):
-    return getattr(entry, attr)/entry.total_accounts
+    return getattr(entry, attr)/entry.accounts
 
 
 def mean(numbers):
@@ -234,12 +234,12 @@ def get_stats(entry, all_entries):
         'cracked',
         'unique',
         'user_equals_password',
-        'non_empty_lm_hash',
+        'lm_hash_count',
         'empty_password',
         'largest_baseword_cluster',
     ]
     absolute_quantities = [
-        'avg_pw_length',
+        'average_password_length',
     ]
     higher_is_better = [
         'unique',

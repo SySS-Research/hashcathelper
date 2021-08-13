@@ -53,7 +53,7 @@ def test_submit(config_file, monkeypatch):
         expected = json.load(fp)
 
     print(vars(r))
-    assert r.total_accounts == expected['report']['accounts']
+    assert r.accounts == expected['report']['accounts']
     assert r.submitter_email == answers.submitter_email
 
     # Test queries
@@ -80,10 +80,10 @@ def test_submit(config_file, monkeypatch):
     ])
 
 
-def create_report(total_accounts, seed=0):
+def create_report(accounts, seed=0):
     random.seed(seed)
-    largest_cluster = int(abs(random.gauss(total_accounts/10,
-                                           total_accounts/50)))
+    largest_cluster = int(abs(random.gauss(accounts/10,
+                                           accounts/50)))
     average_password_length = abs(random.gauss(8, 3))
 
     result = {
@@ -96,8 +96,8 @@ def create_report(total_accounts, seed=0):
           0,
           0.0
         ],
-        "accounts": total_accounts,
-        "total_accounts": total_accounts,
+        "total_accounts": accounts,
+        "accounts": accounts,
         "cluster_count": {},
         "average_password_length": average_password_length,
         "median_password_length": 6,
@@ -114,16 +114,16 @@ def create_report(total_accounts, seed=0):
     }
 
     # Fill in values with percentages
-    ta = total_accounts
+    N = accounts
     for a, parameters in {
-        'user_equals_password': (ta/100, ta/50),
-        'lm_hash_count': (ta/30, ta/50),
-        'cracked': (ta/3, ta/5),
-        'unique': (ta*.8, ta*.3),
-        'empty_password': (ta/100, ta/50),
+        'user_equals_password': (N/100, N/50),
+        'lm_hash_count': (N/30, N/50),
+        'cracked': (N/3, N/5),
+        'unique': (N*.8, N*.3),
+        'empty_password': (N/100, N/50),
     }.items():
-        val = min(int(abs(random.gauss(*parameters))), ta)
-        result['report'][a] = [val, 100*val/ta]
+        val = min(int(abs(random.gauss(*parameters))), N)
+        result['report'][a] = [val, 100*val/N]
 
     return result
 
