@@ -136,7 +136,10 @@ def test_stats(config_file, capsys):
 
     config = parse_config(config_file)
     s = get_session(config.db_uri)
+    s.query(Report).delete()
+
     random.seed(0)
+
     for i in range(100):
         data = create_report(random.randint(200, 200000), seed=i)
         submit(s, 'foo', 'wordlist', 'rule', '0.0', data)
