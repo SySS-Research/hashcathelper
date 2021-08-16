@@ -1,12 +1,12 @@
 """Interface with hashcat"""
 
-import os
+import pkgutil
 import subprocess
 import sys
 import tempfile
 
 
-NT_RULESET = os.path.join(os.path.dirname(__file__), 'toggles-lm-ntlm.rule')
+NT_RULESET = pkgutil.get_data(__name__, 'toggles-lm-ntlm.rule')
 
 
 def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
