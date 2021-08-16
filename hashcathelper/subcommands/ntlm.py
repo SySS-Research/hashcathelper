@@ -47,15 +47,18 @@ def ntlm(args):
     )
     log.info("Created temporary directory: %s" % TEMP_DIR)
 
+    skip_lm = False
     if len(args.hashfile) == 1:
         log.info("Starting hashcat...")
+        if args.skip_lm or not check_lm_hashes(args.hashfile[0]):
+            skip_lm = True
         password_file = crack_pwdump(
             config.hashcat_bin,
             args.hashfile[0],
             TEMP_DIR,
             config.wordlist,
             config.rule,
-            skip_lm=args.skip_lm,
+            skip_lm=skip_lm,
         )
         result = copy_result(password_file, args.hashfile[0], args.suffix)
         log.info("Success! Output is in: %s" % result)
@@ -63,13 +66,15 @@ def ntlm(args):
         log.info("Compiling files into one...")
         compiled_hashfile = compile_files(args.hashfile, TEMP_DIR)
         log.info("Starting hashcat...")
+        if args.skip_lm or not check_lm_hashes(compiled_hashfile):
+            skip_lm = True
         password_file = crack_pwdump(
             config.hashcat_bin,
             compiled_hashfile,
             TEMP_DIR,
             config.wordlist,
             config.rule,
-            skip_lm=args.skip_lm,
+            skip_lm=skip_lm,
         )
         log.info("Decompiling files...")
         result = decompile_file(password_file, args.hashfile, args.suffix)
@@ -191,3 +196,15 @@ def find_filename(filename, suffix):
             break
 
     return target
+
+
+def check_lm_hashes(filename):
+    """Returns True iff the file contains at least one file that contains a
+    non-empty LM hash"""
+    from hashcathelper.consts import LM_EMPTY
+
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            if line.split(':')[1] != LM_EMPTY:
+                return True
+    return False
