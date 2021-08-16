@@ -249,6 +249,7 @@ def percentile(x, numbers, higher_is_better=False):
 
 
 def get_stats(entry, all_entries):
+    from collections import OrderedDict
     from hashcathelper.utils import prcnt
 
     relative_quantities = [
@@ -281,7 +282,7 @@ def get_stats(entry, all_entries):
     all_entries = all_entries_
 
     # Compute the stats
-    result = {}
+    result = OrderedDict()
     for q in relative_quantities+absolute_quantities:
         nums = [e[q] for e in all_entries]
         p = int(percentile(
