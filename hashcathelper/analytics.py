@@ -239,7 +239,7 @@ def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
         after = len(hashes)
         report['total_accounts'] = before
         report['removed'] = before - after
-    return accounts_plus_passwords
+    return accounts_plus_passwords, hashes
 
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
@@ -266,7 +266,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     # Filter accounts
     if filter_accounts:
         log.info("Only taking specified accounts into consideration")
-        accounts_plus_passwords = remove_accounts(
+        accounts_plus_passwords, hashes = remove_accounts(
             report,
             filter_accounts,
             accounts_plus_passwords,
