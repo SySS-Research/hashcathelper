@@ -340,7 +340,7 @@ def cluster_analysis(report, values, empty=''):
     else:
         total = len(values)
 
-    nonunique = sum(1 for _, count in counter.items() if count > 1)
+    nonunique = sum(count for _, count in counter.items() if count > 1)
     report['nonunique'] = (nonunique, prcnt(nonunique, total))
 
     report['empty_password'] = (
