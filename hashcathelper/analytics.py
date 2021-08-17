@@ -245,7 +245,7 @@ def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
                   filter_accounts=None, pw_min_length=6):
     log.info("Creating report...")
-    report = {}
+    report = collections.OrderedDict()
 
     do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts)
