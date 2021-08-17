@@ -96,11 +96,21 @@ def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
             directory=directory,
         )
 
+        # Write ruleset to file in tempdir
+        nt_ruleset = tempfile.NamedTemporaryFile(
+            'wb',
+            dir=directory,
+            delete=False,
+            prefix='rules_',
+        )
+        nt_ruleset.write(NT_RULESET)
+        nt_ruleset.close()
+
         nt_result = hashcat(
             hashcat_bin,
             hashfile,
             hashtype=1000,
-            ruleset=NT_RULESET,
+            ruleset=nt_ruleset.name,
             wordlists=[lm_result],
             directory=directory,
         )
