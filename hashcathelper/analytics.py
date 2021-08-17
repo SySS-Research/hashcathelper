@@ -249,13 +249,13 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
 
     do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts)
-    meta = {
-        "filename_hashes": hashes,
-        "filename_result": accounts_plus_passwords,
-        "filename_passwords": passwords,
-        "filename_filter": filter_accounts,
-        "timestamp": str(dt.now()),
-    }
+    meta = collections.OrderedDict(
+        filename_hashes=hashes,
+        filename_result=accounts_plus_passwords,
+        filename_passwords=passwords,
+        filename_filter=filter_accounts,
+        timestamp=str(dt.now()),
+    )
 
     # Load data from files
     hashes = load_lines(hashes)
@@ -297,7 +297,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         analyze_passwords(report, passwords)
 
     # Move sensitive information
-    sensitive = {}
+    sensitive = collections.OrderedDict()
     for k in ['top10_passwords', 'top10_basewords']:
         sensitive[k] = report[k]
         del report[k]
@@ -319,12 +319,12 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         elif username.lower() in password.lower():
             details['user_similarto_password'].append(username)
 
-    result = {
-        'meta': meta,
-        'report': report,
-        'sensitive': sensitive,
-        'details': details,
-    }
+    result = collections.OrderedDict(
+        meta=meta,
+        report=report,
+        sensitive=sensitive,
+        details=details,
+    )
     return result
 
 
