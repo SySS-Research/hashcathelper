@@ -1,10 +1,12 @@
 """Interface with hashcat"""
 
+import logging
 import pkgutil
 import subprocess
 import sys
 import tempfile
 
+log = logging.getLogger(__name__)
 
 NT_RULESET = pkgutil.get_data(__name__, 'toggles-lm-ntlm.rule')
 
@@ -35,6 +37,7 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         command = command + ['-a', '3', '-i', '?a?a?a?a?a?a?a',
                              '--increment-min', '1', '--increment-max', '7']
 
+    log.debug("Running this command: %s" % command)
     p = subprocess.Popen(
         command,
         stdout=sys.stdout,
@@ -83,6 +86,7 @@ def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
     """
 
     if skip_lm:
+        log.info("Skipping LM hashes")
         wordlists = [wordlist]
     else:
         lm_result = hashcat(
