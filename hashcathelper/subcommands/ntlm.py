@@ -211,6 +211,6 @@ def check_lm_hashes(filename):
 
     with open(filename, 'r') as f:
         for line in f.readlines():
-            if line.split(':')[1] != LM_EMPTY:
+            if line.split(':')[2] != LM_EMPTY:
                 return True
     return False
