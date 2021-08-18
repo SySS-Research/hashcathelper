@@ -64,7 +64,7 @@ $ hashcathelper analytics -f text \
 ### Subcommand "db"
 
 Use this subcommand to interact with the database.
-Results from the `analytics` subcommand command can be submitted and
+Results from the `analytics` subcommand can be submitted and
 collected in a database. This enables us to view statistics for each entry,
 for example how they compare to other customers. We can now say: 57% of all
 passwords could be cracked, which puts you in the bottom 20th percentile.
