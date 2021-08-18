@@ -85,7 +85,9 @@ Installation
 Notes
 -----
 
-Config file should look like this:
+The config file (located at
+`${XDG_CONFIG_HOME:-$HOME/.config}/hashcathelper/hashcathelper.conf` or the CWD) should
+look like this:
 
 ```
 [DEFAULT]

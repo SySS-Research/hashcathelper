@@ -20,8 +20,8 @@ parser.add_argument(
     '-c', '--config',
     type=str,
     help="path to config file; if empty we will try ./hashcathelper.conf"
-    " and ${XDG_CONFIG_HOME:~}/hashcathelper/hashcathelper.conf in that"
-    " order",
+    " and ${XDG_CONFIG_HOME:-$HOME/.config}/hashcathelper/hashcathelper.conf"
+    " in that order",
 )
 
 parser.add_argument(
