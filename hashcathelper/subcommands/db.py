@@ -263,6 +263,9 @@ def get_stats(entry, all_entries):
     absolute_quantities = [
         'average_password_length',
     ]
+    higher_is_better = [
+        'average_password_length',
+    ]
 
     # Copy ORMs to dicts
     entry_ = {}
@@ -288,6 +291,7 @@ def get_stats(entry, all_entries):
         p = int(percentile(
             entry[q],
             nums,
+            higher_is_better=(q in higher_is_better),
         ))
         if q in relative_quantities:
             result[q] = [

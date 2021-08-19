@@ -167,19 +167,19 @@ def test_stats(config_file, capsys):
                                                       1.84, 33],
             'empty_password': [1.35, 1.63, 1.25, 50],
             'largest_baseword_cluster': [11.88, 9.78, 1.93, 15],
-            'average_password_length': [3.81, 8.58, 2.93, 93]},
+            'average_password_length': [3.81, 8.58, 2.93, 6]},
         10: {'cracked': [56.95, 35.72, 18.48, 9], 'nonunique':
              [30.47, 29.22, 10.55, 43],
              'user_equals_password': [3.58, 1.89, 1.41, 9], 'lm_hash_count':
              [6.4, 3.42, 1.84, 6], 'empty_password': [1.65, 1.63, 1.25, 43],
              'largest_baseword_cluster': [8.11, 9.78, 1.93, 77],
-             'average_password_length': [8.66, 8.58, 2.93, 52]},
+             'average_password_length': [8.66, 8.58, 2.93, 47]},
         20: {'cracked': [19.87, 35.72, 18.48, 73], 'nonunique':
              [51.03, 29.22, 10.55, 1],
              'user_equals_password': [1.37, 1.89, 1.41, 60], 'lm_hash_count':
              [3.02, 3.42, 1.84, 53], 'empty_password': [0.72, 1.63, 1.25, 70],
              'largest_baseword_cluster': [8.44, 9.78, 1.93, 71],
-             'average_password_length': [3.28, 8.58, 2.93, 95]},
+             'average_password_length': [3.28, 8.58, 2.93, 4]},
     }
 
     s = get_session(config.db_uri)
