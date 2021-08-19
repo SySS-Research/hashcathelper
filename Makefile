@@ -11,7 +11,7 @@ deploy: hashcathelper.pyz
 
 hashcathelper.pyz: hashcathelper/
 	@$(eval TEMP_DIR := $(shell mktemp -d --suffix=.hashcathelper))
-	pip3 install --system . --upgrade --target "${TEMP_DIR}"
+	python3 -m pip install --system . --upgrade --target "${TEMP_DIR}"
 	@python3 -m zipapp "${TEMP_DIR}" -m hashcathelper.__main__:main -p '/usr/bin/env python3' --output hashcathelper.pyz
 	@rm -rf "${TEMP_DIR}"
 
