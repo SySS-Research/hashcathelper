@@ -1,3 +1,6 @@
+import re
+
+
 def prcnt(a, b=None):
     """Return percentage rounded to two decimals"""
     if b:
@@ -57,3 +60,20 @@ def expand_DES_key(key):
         ((key[6] & 0x7f) << 1),
     ]
     return b''.join([x.to_bytes(1, byteorder='big') for x in s])
+
+
+PATTERN = re.compile(r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$')
+
+
+def parse_user_pass(line):
+    """Takes line of a file in pwdump format and returns dictionary
+    containing username and password"""
+
+    regex = PATTERN.search(line)
+    username = regex.group('username').lower()
+    password = regex.group('password').lower()
+    result = dict(
+        username=username,
+        password=password,
+    )
+    return result

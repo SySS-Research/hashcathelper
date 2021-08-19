@@ -4,23 +4,9 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import prcnt
+from hashcathelper.utils import prcnt, parse_user_pass
 
 log = logging.getLogger(__name__)
-
-
-PATTERN = re.compile(r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$')
-
-
-def parse_user_pass(line):
-    regex = PATTERN.search(line)
-    username = regex.group('username').lower()
-    password = regex.group('password').lower()
-    result = dict(
-        username=username,
-        password=password,
-    )
-    return result
 
 
 def median(lst):
