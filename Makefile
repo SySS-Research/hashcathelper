@@ -19,8 +19,6 @@ clean:
 	@rm -rf build dist *.egg-info
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name '__pycache__' | xargs rm -rf
-	@rm -rf build/
-	@rm -rf dist/
 	@rm -rf .tox
 	@rm -f src/*.egg*
 	@rm -f hashcathelper.pyz
