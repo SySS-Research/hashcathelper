@@ -11,6 +11,24 @@ log = logging.getLogger(__name__)
 NT_RULESET = pkgutil.get_data(__name__, 'toggles-lm-ntlm.rule')
 
 
+def prepend_usernames(wordlists, hashfile, directory='.'):
+    """Extract usernames from hashfile, write to a temporary file, and
+    prepend it to list of wordlists
+    """
+    from hashcathelper.utils import parse_user_pass
+
+    user_file = tempfile.NamedTemporaryFile(
+        delete=False, dir=directory, mode='w',
+        prefix='userlist_',
+    )
+    with open(hashfile, 'r') as fp:
+        for line in fp.readlines():
+            username = parse_user_pass(line)['username']
+            user_file.write(username + '\n')
+    user_file.close()
+    wordlists.insert(0, user_file.name)
+
+
 def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
             pwonly=True, directory='.'):
     """
@@ -27,6 +45,7 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     ]
     command = base_command + ['--outfile-autohex-disable']
     if wordlists:
+        prepend_usernames(wordlists, hashfile, directory=directory)
         command = command + ['-a', '0'] + wordlists
         # Attack mode wordlist
         if ruleset:
