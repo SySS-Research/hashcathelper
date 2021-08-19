@@ -93,7 +93,7 @@ def test_ntlm(temp_dir, words, config_file):
         words,
         password_picks=1000,
         random_passwords=random_passwords,
-        user_eq_pass=0,  # TODO hashcat can't crack these?!
+        user_eq_pass=20,
         empty=15,
         use_lm_hash=17,
         weight_power=2,

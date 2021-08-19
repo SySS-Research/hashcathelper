@@ -2,8 +2,8 @@
   "report": {
     "removed": 0,
     "user_equals_password": [
-      0,
-      0.0
+      2,
+      0.19
     ],
     "accounts": 1315,
     "total_accounts": 1315,
@@ -51,27 +51,29 @@
       137,
       10.41
     ],
-    "average_password_length": 5.47,
+    "average_password_length": 5.49,
     "median_password_length": 6,
     "password_length_count": {
-      "0": 137,
+      "0": 134,
       "3": 7,
-      "4": 28,
+      "4": 29,
       "5": 106,
       "6": 411,
       "7": 183,
-      "8": 143
+      "8": 143,
+      "9": 2
     },
     "char_class_count": {
-      "0": 137,
-      "1": 570,
-      "2": 308
+      "0": 134,
+      "1": 571,
+      "2": 309,
+      "3": 1
     },
-    "average_character_classes": 1.16
+    "average_character_classes": 1.17
   },
   "sensitive": {
     "top10_passwords": {
-      "": 137,
+      "": 134,
       "12345": 74,
       "abc123": 69,
       "123456": 59,
@@ -231,10 +233,7 @@
         "user01308",
         "user01309",
         "user01310",
-        "user01311",
-        "user01312",
-        "user01313",
-        "user01314"
+        "user01311"
       ],
       "1": [],
       "2": [],
@@ -275,7 +274,8 @@
         "user00735",
         "user00771",
         "user00829",
-        "user00837"
+        "user00837",
+        "user01312"
       ],
       "5": [
         "user00006",
@@ -386,7 +386,12 @@
         "user00996"
       ]
     },
-    "user_equals_password": [],
-    "user_similarto_password": []
+    "user_equals_password": [
+      "user01313",
+      "user01314"
+    ],
+    "user_similarto_password": [
+      "user01312"
+    ]
   }
 }
