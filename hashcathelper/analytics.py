@@ -295,8 +295,9 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         'user_similarto_password': [],
     }
     for line in accounts_plus_passwords:
-        username = parse_user_pass(line)['username']
-        password = parse_user_pass(line)['password']
+        line_parsed = parse_user_pass(line)
+        username = line_parsed['username']
+        password = line_parsed['password']
         if len(password) < pw_min_length:
             details['short_password'][len(password)].append(username)
         if username.lower() == password.lower():
