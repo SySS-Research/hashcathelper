@@ -24,6 +24,10 @@ def prepend_usernames(wordlists, hashfile, directory='.'):
     with open(hashfile, 'r') as fp:
         for line in fp.readlines():
             username = parse_user_pass(line)['username']
+            # Warning: hashfile is not actually meant to be parsed by
+            # parse_user_pass. Password will now contain user ID, LM hash
+            # and NT hash, but that's fine here.
+            # Also, username is converted to lower case by that function.
             user_file.write(username + '\n')
     user_file.close()
     wordlists.insert(0, user_file.name)

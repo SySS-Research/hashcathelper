@@ -66,8 +66,13 @@ PATTERN = re.compile(r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$')
 
 
 def parse_user_pass(line):
-    """Takes line of a file in pwdump format and returns dictionary
-    containing username and password"""
+    """Takes line of a file and returns dictionary
+    containing username and password.
+
+    The format of the file must be like this:
+        contoso.local\\username:Password123
+
+    """
 
     regex = PATTERN.search(line)
     username = regex.group('username').lower()
