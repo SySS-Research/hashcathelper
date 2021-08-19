@@ -301,7 +301,10 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
             details['short_password'][len(password)].append(username)
         if username.lower() == password.lower():
             details['user_equals_password'].append(username)
-        elif username.lower() in password.lower():
+        elif (password and (
+            username.lower() in password.lower()
+            or password.lower() in username.lower()
+        )):
             details['user_similarto_password'].append(username)
 
     result = collections.OrderedDict(
