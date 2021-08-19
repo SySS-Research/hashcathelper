@@ -27,6 +27,7 @@ lint:
 	@flake8 hashcathelper
 
 test:
+	@rm -rf .tox
 	@tox
 
 docs:
