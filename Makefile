@@ -3,6 +3,7 @@ help:
 	@echo "lint - check style with flake8"
 	@echo "test - run tests"
 	@echo "deploy - package and upload a release to hashcat01"
+	@echo "release - tag a new release and update changelog"
 	@echo "install - install the package to the user's Python's site-packages"
 	@echo "help - show this help and exit"
 
@@ -36,7 +37,18 @@ docs:
 install:
 	python3 setup.py install --user
 
-#  confluence:
-#  	@make -C doc confluence
+# \n in sed only works in GNU sed
+release:
+	@read -p "Enter version string: " version; \
+    echo "Version Bump: $$version"; \
+	date=$$(date +%F); \
+	sed -i "s/^__version__ = '.*'/__version__ = '$$version'/" hashcathelper/_meta.py && \
+	sed -i "s/^## \[Unreleased\]/## [Unreleased]\n\n## [$$version] - $$date/" CHANGELOG.md && \
+	git add CHANGELOG.md hashcathelper/_meta.py && \
+	git commit -m "Version bump: $$version" && \
+	git tag $$version && \
+	read -p "Do you want to push the new version? [y/n] " ans; \
+	if [ $$ans = 'y' ] ; then git push ; git push origin tag $$version ; fi
 
-.PHONY: build clean lint test docs deploy install help confluence
+
+.PHONY: build clean lint test docs deploy install help release
