@@ -107,6 +107,9 @@ been filtered."""
 
 
 def ask_question(description, default=None, valid=None):
+    # Import readline so we can use backspace in `input()`
+    # It automatically wraps `input()`, nothing else needed
+    import readline  # noqa
     print(description)
 
     while True:

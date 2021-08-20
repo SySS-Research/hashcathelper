@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Catch CTRL-C during questionnaire when submitting data
+- Use `readline` so you can use backspace when interactively answering questions
 
 ## [0.1.2] - 2021-08-19
 
