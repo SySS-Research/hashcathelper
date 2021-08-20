@@ -42,7 +42,11 @@ def submit(args):
     data = json.load(args.infile)
 
     config = parse_config(args.config)
-    questions = ask_questions(config)
+    try:
+        questions = ask_questions(config)
+    except KeyboardInterrupt:
+        log.info("CTRL-C caught, aborting...")
+        return
 
     id_ = submit(
         session,
