@@ -196,6 +196,9 @@ def stats(args):
         r = s.query(Report).order_by(Report.id.desc()).first()
     all_entries = s.query(Report).all()
 
+    total_entries = len(all_entries)
+    total_accounts = sum(e.accounts for e in all_entries)
+
     result = get_stats(r, all_entries)
 
     if args.format == 'text':
@@ -205,6 +208,9 @@ def stats(args):
 
         # Remove percentage on average pw length
         data[-1][0] = data[-1][0][:-4]
+
+        print("The database holds information about %d accounts in %d entries."
+              % (total_accounts, total_entries))
 
         out = tabulate(
             data,

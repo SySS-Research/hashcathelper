@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "Higher is better" was applied twice when creating the stats
 
+### Added
+
+- Show information about the number of entries when creating the stats
+
 ## [0.1.2] - 2021-08-19
 
 ### Added
