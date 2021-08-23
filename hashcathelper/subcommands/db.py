@@ -95,7 +95,8 @@ been filtered."""
         hashcat_version = subprocess.check_output(
             [config.hashcat_bin, '-V']
         ).decode().strip()
-    except FileNotFoundError:
+    except Exception as e:
+        log.error(str(e))
         hashcat_version = 'unknown'
 
     result['hashcat_version'] = ask_question(
