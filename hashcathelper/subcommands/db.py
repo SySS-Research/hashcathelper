@@ -206,9 +206,6 @@ def stats(args):
         # Remove percentage on average pw length
         data[-1][0] = data[-1][0][:-4]
 
-        # Higher is better for average pw length
-        data[-1][-1] = 100 - data[-1][-1]
-
         out = tabulate(
             data,
             headers=[

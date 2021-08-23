@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `readline` so you can use backspace when interactively answering questions
 - Gracefully handle missing hashcat binary during questionnaire
 
+### Fixed
+
+- "Higher is better" was applied twice when creating the stats
+
 ## [0.1.2] - 2021-08-19
 
 ### Added
