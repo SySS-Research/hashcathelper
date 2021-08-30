@@ -172,7 +172,13 @@ args_delete = []
 args_delete.append(argument(
     dest='id',
     type=int,
-    help="delete the entry with this ID"
+    help="delete the entry with this ID",
+))
+
+args_delete.append(argument(
+    '-f', '--force',
+    action='store_true',
+    help="don't ask for confirmation",
 ))
 
 
@@ -180,10 +186,22 @@ args_delete.append(argument(
 def delete(args):
     '''Delete an entry'''
     from hashcathelper.sql import Report
+
     if not args.id:
         log.error("You must supply an ID.")
         exit(1)
     s = get_session(args)
+
+    if not args.force:
+        ans = ask_question(
+            "You are about to delete entry %d. Are you sure?" % args.id,
+            'n',
+            ['y', 'n'],
+        )
+        if ans == 'n':
+            log.info("Aborted.")
+            return
+
     row = s.query(Report).filter_by(id=args.id)
     row.delete()
     s.commit()

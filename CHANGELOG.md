@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `readline` so you can use backspace when interactively answering questions
 - Gracefully handle missing hashcat binary during questionnaire
 - Improve formatting of output of `db query`
+- User must now confirm before deleting an entry
 
 ### Fixed
 
