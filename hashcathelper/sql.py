@@ -47,6 +47,12 @@ class Report(Base):
     average_password_length = Column(Float)
     largest_baseword_cluster = Column(Integer)
 
+    def columns_to_dict(self):
+        dict_ = {}
+        for key in self.__mapper__.c.keys():
+            dict_[key] = getattr(self, key)
+        return dict_
+
 
 def submit(session,
            submitter_email,

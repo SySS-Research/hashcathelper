@@ -151,13 +151,19 @@ def query(args):
     from hashcathelper.sql import Report
 
     s = get_session(args)
-    out = []
-    for r in s.query(Report).order_by(Report.id.asc()).all():
-        out.append([r.id, r.submission_date, r.submitter_email,
-                    r.accounts])
+    if args.id:
+        from tabulate import tabulate
+        r = s.query(Report).filter_by(id=args.id).one()
+        data = r.columns_to_dict()
+        print(tabulate(list(data.items())))
+    else:
+        out = []
+        for r in s.query(Report).order_by(Report.id.asc()).all():
+            out.append([r.id, r.submission_date, r.submitter_email,
+                        r.accounts])
 
-    for o in out:
-        print('\t'.join(["%s"] * len(o)) % tuple(o))
+        for o in out:
+            print('\t'.join(["%s"] * len(o)) % tuple(o))
 
 
 args_stats = []

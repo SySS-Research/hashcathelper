@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support printing an entire single database entry
+
 ### Changed
 
 - Catch CTRL-C during questionnaire when submitting data
