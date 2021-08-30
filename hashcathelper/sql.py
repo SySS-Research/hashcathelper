@@ -76,7 +76,11 @@ def submit(session,
             return val[0]
         return val
 
-    largest_cluster = max(data['sensitive']['top10_basewords'].values())
+    top_basewords = data['sensitive']['top10_basewords'].values()
+    if top_basewords:
+        largest_cluster = max(top_basewords)
+    else:
+        largest_cluster = 0
     r = Report(
         submitter_email=submitter_email,
         submission_date=dt.now(),

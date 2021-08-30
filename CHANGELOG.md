@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - "Higher is better" was applied twice when creating the stats
+- Prevent exception in `db stats` if there is no largest cluster
 
 ### Added
 
