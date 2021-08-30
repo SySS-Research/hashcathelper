@@ -285,8 +285,9 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     # Move sensitive information
     sensitive = collections.OrderedDict()
     for k in ['top10_passwords', 'top10_basewords']:
-        sensitive[k] = report[k]
-        del report[k]
+        if k in report:
+            sensitive[k] = report[k]
+            del report[k]
 
     # Find accounts with short passwords
     details = {
