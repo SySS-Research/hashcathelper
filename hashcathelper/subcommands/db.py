@@ -166,6 +166,29 @@ def query(args):
             print('\t'.join(["%s"] * len(o)) % tuple(o))
 
 
+args_delete = []
+
+args_delete.append(argument(
+    dest='id',
+    type=int,
+    help="delete the entry with this ID"
+))
+
+
+@subcommand(args_delete, parent=subparsers)
+def delete(args):
+    '''Delete an entry'''
+    from hashcathelper.sql import Report
+    if not args.id:
+        log.error("You must supply an ID.")
+        exit(1)
+    s = get_session(args)
+    row = s.query(Report).filter_by(id=args.id)
+    row.delete()
+    s.commit()
+    log.info("Deleted entry %d" % args.id)
+
+
 args_stats = []
 
 args_stats.append(argument(

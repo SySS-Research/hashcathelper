@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support printing an entire single database entry
+- Support deleting single database entries
 
 ### Changed
 
