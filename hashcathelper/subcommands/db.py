@@ -149,21 +149,22 @@ args_query.append(argument(
 def query(args):
     '''List all entries'''
     from hashcathelper.sql import Report
+    from tabulate import tabulate
 
     s = get_session(args)
     if args.id:
-        from tabulate import tabulate
         r = s.query(Report).filter_by(id=args.id).one()
         data = r.columns_to_dict()
         print(tabulate(list(data.items())))
     else:
-        out = []
+        data = []
         for r in s.query(Report).order_by(Report.id.asc()).all():
-            out.append([r.id, r.submission_date, r.submitter_email,
-                        r.accounts])
-
-        for o in out:
-            print('\t'.join(["%s"] * len(o)) % tuple(o))
+            data.append([r.id, r.submission_date.replace(microsecond=0),
+                         r.submitter_email, r.accounts])
+        print(tabulate(
+            data,
+            headers="ID Submission E-Mail Accounts".split(),
+        ))
 
 
 args_delete = []
