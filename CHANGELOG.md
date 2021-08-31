@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Higher is better" was applied twice when creating the stats
 - Prevent exception in `db stats` if there is no largest cluster
 - Prevent exception when creating a report and no top passwords exist
+- Fix LM detection when cracking several hash files at once
 
 ### Added
 

@@ -71,7 +71,7 @@ def ntlm(args):
         log.info("Starting hashcat...")
         if args.skip_lm:
             skip_lm = True
-        if not check_lm_hashes(args.hashfile[0]):
+        if not check_lm_hashes(compiled_hashfile):
             log.info("No LM hashes found")
             skip_lm = True
         password_file = crack_pwdump(
