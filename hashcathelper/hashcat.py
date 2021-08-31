@@ -67,8 +67,10 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         stderr=subprocess.STDOUT,
     )
     p.communicate()
-    if p.returncode:
-        raise RuntimeError("Hashcat exited with non-zero return code")
+    # Check return code. 'exhaused' (1) is fine.
+    # https://github.com/hashcat/hashcat/blob/master/docs/status_codes.txt
+    if p.returncode not in [0, 1]:
+        raise RuntimeError("Hashcat exited with an error")
 
     # Retrieve result
     show_command = base_command + ['--show']
