@@ -67,6 +67,8 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         stderr=subprocess.STDOUT,
     )
     p.communicate()
+    if p.returncode:
+        raise RuntimeError("Hashcat exited with non-zero return code")
 
     # Retrieve result
     show_command = base_command + ['--show']
@@ -79,7 +81,9 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     )
     passwords, _ = p.communicate()
     if p.returncode:
-        raise RuntimeError("Hashcat exited with non-zero return code")
+        raise RuntimeError(
+            "Hashcat exited with non-zero return code when retrieving result"
+        )
 
     result = tempfile.NamedTemporaryFile(delete=False, dir=directory)
     for p in passwords.splitlines():

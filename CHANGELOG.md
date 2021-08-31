@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gracefully handle missing hashcat binary during questionnaire
 - Improve formatting of output of `db query`
 - User must now confirm before deleting an entry
+- Check hashcat's return code
 
 ### Fixed
 
