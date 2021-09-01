@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve formatting of output of `db query`
 - User must now confirm before deleting an entry
 - Check hashcat's return code
+- Replace "empty" with "blank" in top 10 passwords list
 
 ### Fixed
 

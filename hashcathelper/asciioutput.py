@@ -61,7 +61,7 @@ def histogram(dct, title='', width=50, indent=4):
         result += title + '\n'
     for k, v in dct.items():
         if k == '':
-            k = '<EMPTY>'
+            k = '<BLANK>'
         line = ' '*indent
         line += ' '*(maxwidth - len(str(k))) + str(k) + ' '
         length = v/maxval * width
