@@ -123,7 +123,7 @@ def do_sanity_check(hashes, accounts_plus_passwords, passwords,
     if filter_accounts and not (hashes or accounts_plus_passwords):
         log.warning(
             "filter_accounts specified, but not needed "
-            "if neither hashes nor accounts_plus_passwords is None"
+            "if neither hashes nor accounts_plus_passwords is given"
         )
 
 
