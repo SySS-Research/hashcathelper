@@ -1,4 +1,5 @@
 import re
+import collections
 
 
 def prcnt(a, b=None):
@@ -62,19 +63,51 @@ def expand_DES_key(key):
     return b''.join([x.to_bytes(1, byteorder='big') for x in s])
 
 
-PATTERN = re.compile(r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$')
+USER_PASS_PATTERN = re.compile(
+    r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$'
+)
+PWDUMP_PATTERN = re.compile(
+    r'((?P<domain>[^\\]+)\\)?(?P<username>[^:]+):'
+    r'(?P<id>[0-9]+):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32}):::'
+    r'(?P<comment>.*)'
+)
 
 
-def parse_user_pass(line):
-    """Takes line of a file and returns dictionary
-    containing username and password.
+def parse_pwdump_line(line):
+    """Takes line of a file and returns dictionary containing username and
+    password.
+
+    The format of the file must be like this:
+        <suffix>\\<username>:<ID>:<LM Hash>:<NT Hash>:::<Comment>
+    """
+    attrs = (
+        'username domain id lmhash nthash comment full_username'
+    ).split()
+    PWDumpLine = collections.namedtuple('PWDumpLine', attrs)
+    regex = PWDUMP_PATTERN.search(line)
+    result = {}
+    for a in attrs:
+        try:
+            result[a] = regex.group(a)
+        except IndexError:
+            pass
+    result['full_username'] = '%s\\%s' % (
+        regex.group('domain'),
+        regex.group('username'),
+    )
+    return PWDumpLine(**result)
+
+
+def parse_user_pass(line, lower=True):
+    """Takes line of a file and returns dictionary containing username and
+    password.
 
     The format of the file must be like this:
         contoso.local\\username:Password123
 
     """
 
-    regex = PATTERN.search(line)
+    regex = USER_PASS_PATTERN.search(line)
     username = regex.group('username').lower()
     password = regex.group('password').lower()
     result = dict(
