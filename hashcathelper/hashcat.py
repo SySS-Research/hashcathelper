@@ -87,13 +87,17 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
             "Hashcat exited with non-zero return code when retrieving result"
         )
 
-    result = tempfile.NamedTemporaryFile(delete=False, dir=directory)
-    for p in passwords.splitlines():
+    from hashcathelper.utils import parse_user_pass
+    result = tempfile.NamedTemporaryFile(delete=False, dir=directory,
+                                         mode='w')
+    for line in passwords.splitlines():
+        user_pass = parse_user_pass(line.decode())
         if pwonly:
-            # Remove username
-            p = b':'.join(p.split(b':')[1:])
+            line = user_pass['password']
+        else:
+            line = line.decode()
         # Write rest of the line to the result file
-        result.write(p + b'\n')
+        result.write(line + '\n')
     result.close()
     return result.name
 
