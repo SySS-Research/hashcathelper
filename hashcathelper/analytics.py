@@ -4,7 +4,7 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import prcnt, parse_user_pass
+from hashcathelper.utils import prcnt, parse_user_pass, parse_pwdump_line
 
 log = logging.getLogger(__name__)
 
@@ -206,30 +206,57 @@ def analyze_hashes(report, hashes, passwords):
     cluster_analysis(report, nt_hashes, empty=NT_EMPTY)
 
 
-def remove_accounts(report, filter_accounts, accounts_plus_passwords, hashes):
+def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
+                    keep_only=[]):
+    """Remove all lines from `hashes` and `accounts_plus_passwords` which have a
+    username which is either specified in `remove` or not specified in
+    `keep_only` (if `keep_only` is non-empty).
 
-    filter_accounts = set(line.lower() for line in filter_accounts)
+    Accounts are assumed to be case-insensitive. The UPN suffix (e.g. the
+    domain name) is ignored if there is one.
+
+    `report` must be a suitable dictionary, the other args lists of strings.
+    """
+
+    remove = set(line.lower() for line in remove)
+    keep_only = set(line.lower() for line in keep_only)
+
+    # Remove entries from first list
     if accounts_plus_passwords:
         before = len(accounts_plus_passwords)
         accounts_plus_passwords = [
             p for p in accounts_plus_passwords
-            if parse_user_pass(p)['username'] in filter_accounts
+            if parse_user_pass(p)['username'] not in remove
         ]
+        if keep_only:
+            accounts_plus_passwords = [
+                p for p in accounts_plus_passwords
+                if parse_user_pass(p)['username'] in keep_only
+            ]
         after = len(accounts_plus_passwords)
         report['total_accounts'] = before
         report['removed'] = before - after
+
+    # Remove entries from second list
     if hashes:
         before = len(hashes)
-        hashes = [h for h in hashes
-                  if parse_user_pass(h)['username'] in filter_accounts]
+        hashes = [
+            p for p in hashes
+            if parse_user_pass(p)['username'] not in remove
+        ]
+        if keep_only:
+            hashes = [h for h in hashes
+                      if parse_user_pass(h)['username'] in keep_only]
         after = len(hashes)
         report['total_accounts'] = before
         report['removed'] = before - after
+
     return accounts_plus_passwords, hashes
 
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
-                  filter_accounts=None, pw_min_length=6):
+                  filter_accounts=None, pw_min_length=6,
+                  include_disabled=False, include_computer_accounts=False):
     log.info("Creating report...")
     report = collections.OrderedDict()
 
@@ -249,17 +276,34 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     passwords = load_lines(passwords)
     filter_accounts = load_lines(filter_accounts)
 
+    # Remove computer accounts and accounts marked by hashcat as 'disabled'
+    disabled = []
+    computer_accounts = []
+    if not include_disabled or not include_computer_accounts:
+        for line in hashes:
+            pwdump_line = parse_pwdump_line(line)
+            if 'status=Disabled' in pwdump_line.comment:
+                disabled.append(pwdump_line.username)
+            if pwdump_line.username.endswith('$'):
+                computer_accounts.append(pwdump_line.username)
+
     # Filter accounts
     if filter_accounts:
         log.info("Only taking specified accounts into consideration")
-        accounts_plus_passwords, hashes = remove_accounts(
-            report,
-            filter_accounts,
-            accounts_plus_passwords,
-            hashes,
-        )
-    else:
-        report['removed'] = 0
+    if disabled:
+        log.info("Removing %d accounts which have been marked as disabled"
+                 % len(disabled))
+    if computer_accounts:
+        log.info("Removing %d computer accounts" % len(computer_accounts))
+
+    accounts_plus_passwords, hashes = remove_accounts(
+        report,
+        accounts_plus_passwords,
+        hashes,
+        remove=disabled+computer_accounts,
+        keep_only=filter_accounts,
+    )
+    if report['removed'] == 0:
         log.warning(
             "No accounts filtered. Are you sure?"
             " At least inactive accounts should be filtered."

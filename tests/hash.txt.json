@@ -1,15 +1,15 @@
 {
   "report": {
-    "removed": 0,
+    "total_accounts": 1326,
+    "removed": 15,
     "user_equals_password": [
-      2,
-      0.19
+      1,
+      0.09
     ],
-    "accounts": 1315,
-    "total_accounts": 1315,
+    "accounts": 1311,
     "cracked": [
-      1015,
-      77.18
+      1012,
+      77.19
     ],
     "lm_hash_count": [
       17,
@@ -41,39 +41,39 @@
       "59": 1,
       "69": 1,
       "74": 1,
-      "137": 1
+      "134": 1
     },
     "nonunique": [
-      997,
+      994,
       75.81
     ],
     "empty_password": [
-      137,
-      10.41
+      134,
+      10.22
     ],
-    "average_password_length": 5.49,
-    "median_password_length": 6,
+    "average_password_length": 5.5,
+    "median_password_length": 6.0,
     "password_length_count": {
-      "0": 134,
+      "0": 132,
       "3": 7,
       "4": 29,
       "5": 106,
       "6": 411,
       "7": 183,
       "8": 143,
-      "9": 2
+      "9": 1
     },
     "char_class_count": {
-      "0": 134,
+      "0": 132,
       "1": 571,
-      "2": 309,
+      "2": 308,
       "3": 1
     },
     "average_character_classes": 1.17
   },
   "sensitive": {
     "top10_passwords": {
-      "": 134,
+      "": 132,
       "12345": 74,
       "abc123": 69,
       "123456": 59,
@@ -225,14 +225,12 @@
         "user01300",
         "user01301",
         "user01302",
-        "user01303",
         "user01304",
         "user01305",
         "user01306",
         "user01307",
         "user01308",
         "user01309",
-        "user01310",
         "user01311"
       ],
       "1": [],
@@ -387,7 +385,6 @@
       ]
     },
     "user_equals_password": [
-      "user01313",
       "user01314"
     ],
     "user_similarto_password": [

@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - User must now confirm before deleting an entry
 - Check hashcat's return code
 - Replace "empty" with "blank" in top 10 passwords list
+- Automatically remove computer accounts (end with $) or accounts that are
+  marked as inactive in the pwdump file like `secretsdump -user-status` does
+  it
 
 ### Fixed
 
