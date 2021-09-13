@@ -45,12 +45,15 @@ It takes the following files as an input:
 At least one of those is required. Ideally, you pass the hashes and the
 output of the `ntlm` subcommand.
 
+By default, computer accounts and accounts which are marked as `disabled`
+in the pwdump file (like `secretsdump -user-status` does) will be disregarded.
+
 Additionally, you can pass the path to a file containing account names to be
 used as a filter. Only the accounts whose names are listed in this file will
 be considered. This is useful if you are only interested in statistics
-regarding active accounts, for example. Or you want the statistics regarding
-all accounts with `admin` in their name. Or statistics regarding
-kerberoastable users.
+regarding active accounts and did not use `secretsdump -user-status), for
+example. Or you want the statistics regarding all accounts with `admin` in
+their name. Or statistics regarding kerberoastable users.
 
 Example:
 
@@ -58,7 +61,7 @@ Example:
 $ hashcathelper analytics -f text \
     -H dc01.ntds \
     -A dc01.ntds.out \
-    -F active_accounts.txt
+    -F kerberoastable_accounts.txt
 ```
 
 ### Subcommand "db"
