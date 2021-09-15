@@ -91,6 +91,9 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     result = tempfile.NamedTemporaryFile(delete=False, dir=directory,
                                          mode='w')
     for line in passwords.splitlines():
+        if line.startswith(b'\x1b'):
+            # This means it's a warning and not part of the usernames
+            continue
         user_pass = parse_user_pass(line.decode())
         if pwonly:
             line = user_pass['password']

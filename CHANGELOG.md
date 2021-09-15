@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatically remove computer accounts (end with $) or accounts that are
   marked as inactive in the pwdump file like `secretsdump -user-status` does
   it
+- Ignore hashcat warnings when retrieving usernames (#4)
 
 ### Fixed
 
