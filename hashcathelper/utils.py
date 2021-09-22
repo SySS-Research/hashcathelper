@@ -77,6 +77,7 @@ class User(object):
             .split()
 
     def __init__(self, line):
+        self.line = line
         for p in [
             PWDUMP_PATTERN,
             USER_PASS_PATTERN,
@@ -120,3 +121,6 @@ class User(object):
             raise TypeError("Can't compare User object with type %s" %
                             type(b).__name__)
         return self.username.lower() == b.lower()
+
+    def __str__(self):
+        return self.full_username
