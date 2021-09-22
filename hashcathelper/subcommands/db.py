@@ -230,7 +230,7 @@ args_stats.append(argument(
     default=None,
     nargs='?',
     help="show stats of the entry with this ID; leave empty for last entry; "
-         "can also be a file name containing a full JSON report",
+         "can also be a path to a file containing a full JSON report",
 ))
 
 
