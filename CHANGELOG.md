@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support printing an entire single database entry
 - Support deleting single database entries
+- Support generating stats of reports without submitting them to the
+  database first
 
 ### Changed
 

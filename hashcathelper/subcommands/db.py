@@ -37,6 +37,7 @@ def submit(args):
     import json
 
     from hashcathelper.sql import submit
+    from hashcathelper.analytics import create_short_report
 
     session = get_session(args)
     data = json.load(args.infile)
@@ -48,14 +49,14 @@ def submit(args):
         log.info("CTRL-C caught, aborting...")
         return
 
-    id_ = submit(
-        session,
+    short_report = create_short_report(
         questions['submitter_email'],
         questions['wordlist'],
         questions['rule_set'],
         questions['hashcat_version'],
         data,
     )
+    id_ = submit(session, short_report)
 
     log.info("Entry with ID %d submitted. Thanks for contributing!" % id_)
 
@@ -228,20 +229,35 @@ args_stats.append(argument(
     dest='id',
     default=None,
     nargs='?',
-    help="show stats of the entry with this ID; leave empty for last entry",
+    help="show stats of the entry with this ID; leave empty for last entry; "
+         "can also be a file name containing a full JSON report",
 ))
 
 
 @subcommand(args_stats, parent=subparsers)
 def stats(args):
     '''Show statistics for one database entry'''
+    import os
     from hashcathelper.sql import Report
+    from hashcathelper.analytics import create_short_report
 
     s = get_session(args)
     if args.id:
-        r = s.query(Report).filter_by(id=args.id).one()
+        if os.path.isfile(args.id):
+            import json
+            with open(args.id, 'r') as fp:
+                data = json.load(fp)
+            r = create_short_report(None, None, None, None, data)
+        else:
+            r = s.query(Report).filter_by(id=args.id).one()
+            if not r:
+                log.critical("No report found with this ID: %d" % args.id)
+                exit(1)
     else:
         r = s.query(Report).order_by(Report.id.desc()).first()
+        if not r:
+            log.critical("No report found")
+            exit(1)
     all_entries = s.query(Report).all()
 
     total_entries = len(all_entries)
@@ -307,6 +323,16 @@ def percentile(x, numbers, higher_is_better=False):
     return int(100*result)/100
 
 
+def orm_to_dict(entry, relative_quantities, absolute_quantities):
+    """Convert an ORM object to a dictionary"""
+    entry_ = {}
+    for q in relative_quantities:
+        entry_[q] = normalize(entry, q)
+    for q in absolute_quantities:
+        entry_[q] = getattr(entry, q)
+    return entry_
+
+
 def get_stats(entry, all_entries):
     from collections import OrderedDict
     from hashcathelper.utils import prcnt
@@ -326,22 +352,16 @@ def get_stats(entry, all_entries):
         'average_password_length',
     ]
 
-    # Copy ORMs to dicts
-    entry_ = {}
-    for q in relative_quantities:
-        entry_[q] = normalize(entry, q)
-    for q in absolute_quantities:
-        entry_[q] = getattr(entry, q)
-    all_entries_ = []
-    for e in all_entries:
-        e_ = {}
-        for q in relative_quantities:
-            e_[q] = normalize(e, q)
-        for q in absolute_quantities:
-            e_[q] = getattr(e, q)
-        all_entries_.append(e_)
-    entry = entry_
-    all_entries = all_entries_
+    # Copy ORMs to dicts and normalize relative quantities
+    if isinstance(entry, dict):
+        from collections import namedtuple
+        ShortReport = namedtuple('ShortReport', entry.keys())
+        entry = ShortReport(**entry)
+    entry = orm_to_dict(entry, relative_quantities, absolute_quantities)
+    all_entries = [
+        orm_to_dict(e, relative_quantities, absolute_quantities)
+        for e in all_entries
+    ]
 
     # Compute the stats
     result = OrderedDict()

@@ -127,6 +127,7 @@ def test_stats(config_file, capsys):
     from hashcathelper.__main__ import main
     from hashcathelper.args import parse_config
     from hashcathelper.sql import get_session, Report, submit
+    from hashcathelper.analytics import create_short_report
     from hashcathelper.subcommands.db import get_stats
 
     config = parse_config(config_file)
@@ -137,7 +138,10 @@ def test_stats(config_file, capsys):
 
     for i in range(100):
         data = create_report(random.randint(200, 200000), seed=i)
-        submit(s, 'foo', 'wordlist', 'rule', '0.0', data)
+        short_report = create_short_report(
+            'foo', 'wordlist', 'rule', '0.0', data
+        )
+        submit(s, short_report)
 
     main([
         '--config',

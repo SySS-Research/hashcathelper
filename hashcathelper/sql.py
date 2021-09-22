@@ -54,51 +54,8 @@ class Report(Base):
         return dict_
 
 
-def submit(session,
-           submitter_email,
-           wordlist,
-           rule_set,
-           hashcat_version,
-           data):
-    from datetime import datetime as dt
-    from hashcathelper._meta import __version__
-    try:
-        timestamp = data['meta']['timestamp']
-        cracking_date = dt.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
-    except (KeyError, ValueError):
-        log.error("Failed to parse cracking date")
-        cracking_date = None
-
-    def get_value(item):
-        # for values with percentage
-        val = data['report'][item]
-        if isinstance(val, list) and len(val) == 2:
-            return val[0]
-        return val
-
-    top_basewords = data['sensitive']['top10_basewords'].values()
-    if top_basewords:
-        largest_cluster = max(top_basewords)
-    else:
-        largest_cluster = 0
-    r = Report(
-        submitter_email=submitter_email,
-        submission_date=dt.now(),
-        cracking_date=cracking_date,
-        wordlist=wordlist,
-        rule_set=rule_set,
-        hashcathelper_version=__version__,
-        hashcat_version=hashcat_version,
-        accounts=data['report']['accounts'],
-        cracked=get_value('cracked'),
-        nonunique=get_value('nonunique'),
-        user_equals_password=get_value('user_equals_password'),
-        lm_hash_count=get_value('lm_hash_count'),
-        empty_password=get_value('empty_password'),
-        average_password_length=data['report']['average_password_length'],
-        largest_baseword_cluster=largest_cluster,
-    )
-
+def submit(session, short_report):
+    r = Report(**short_report)
     session.add(r)
     session.commit()
     return r.id
