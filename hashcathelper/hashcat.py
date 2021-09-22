@@ -73,36 +73,41 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         raise RuntimeError("Hashcat exited with an error")
 
     # Retrieve result
+    output_file = hashfile + '.out'
     show_command = base_command + ['--show']
-    show_command += ['--outfile-format', '2']
+    show_command += [
+        '--outfile-format', '2',
+        '--outfile', output_file,
+    ]
 
     p = subprocess.Popen(
         show_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    passwords, _ = p.communicate()
+    p.communicate()
     if p.returncode:
         raise RuntimeError(
             "Hashcat exited with non-zero return code when retrieving result"
         )
 
-    from hashcathelper.utils import parse_user_pass
-    result = tempfile.NamedTemporaryFile(delete=False, dir=directory,
-                                         mode='w')
-    for line in passwords.splitlines():
-        if line.startswith(b'\x1b'):
-            # This means it's a warning and not part of the usernames
-            continue
-        user_pass = parse_user_pass(line.decode())
-        if pwonly:
-            line = user_pass['password']
-        else:
-            line = line.decode()
-        # Write rest of the line to the result file
-        result.write(line + '\n')
-    result.close()
-    return result.name
+    if pwonly:
+        # Remove user names
+        from hashcathelper.utils import parse_user_pass
+        output_file_cleaned = tempfile.NamedTemporaryFile(
+            delete=False, dir=directory, mode='w', suffix='pwonly',
+        )
+        with open(output_file, 'r') as fp:
+            for line in fp.splitlines():
+                user_pass = parse_user_pass(line.decode())
+                line = user_pass['password']
+                # Write rest of the line to the result file
+                output_file_cleaned.write(line + '\n')
+        output_file_cleaned.close()
+        result = output_file_cleaned.name
+    else:
+        result = output_file
+    return result
 
 
 def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
