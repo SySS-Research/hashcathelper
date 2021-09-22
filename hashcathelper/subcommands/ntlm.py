@@ -99,7 +99,9 @@ def do_sanity_check(config):
 def compile_files(hashfiles, tempdir='.'):
     """Compile several files into one"""
     import tempfile
-    result = tempfile.NamedTemporaryFile(dir=tempdir, delete=False).name
+    result = tempfile.NamedTemporaryFile(
+        dir=tempdir, delete=False, suffix='compiled'
+    ).name
 
     with open(result, 'wb') as f_out:
         for hf in hashfiles:
