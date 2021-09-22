@@ -91,9 +91,15 @@ def ntlm(args):
 
 
 def do_sanity_check(config):
+    import os
     if not config.hashcat_bin:
         log.critical("Config value not provided: %s" % 'hashcat_bin')
         exit(1)
+
+    for path in [config.wordlist, config.rule, config.hashcat_bin]:
+        if not os.path.isfile(path):
+            log.critical("File not found: %s" % path)
+            exit(1)
 
 
 def compile_files(hashfiles, tempdir='.'):
