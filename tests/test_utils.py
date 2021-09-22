@@ -35,6 +35,10 @@ def test_user():
             comment='(status=Disabled)',
             disabled=True,
         ),
+        'user:$HEX[68616c6c6f32303039f0f0]': dict(
+            username='user',
+            password='hallo2009',
+        ),
     }
     for line, expected in test_cases.items():
         u = User(line)
