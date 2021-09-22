@@ -283,7 +283,6 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
                 disabled.append(u)
             if u.is_computer_account():
                 computer_accounts.append(u)
-    print(disabled)
 
     # Filter accounts
     if filter_accounts:
