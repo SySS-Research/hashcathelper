@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it
 - Ignore hashcat warnings when retrieving usernames (#4)
 - Check existence of critical files before running `ntlm` subcommand
+- Handle `$HEX[]` passwords
 
 ### Fixed
 

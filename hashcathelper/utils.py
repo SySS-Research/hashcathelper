@@ -1,4 +1,5 @@
 import re
+import binascii
 
 
 def prcnt(a, b=None):
@@ -70,6 +71,9 @@ PWDUMP_PATTERN = re.compile(
     r':(?P<id>[0-9]*):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32})'
     r':::(?P<comment>.*)$'
 )
+HEX_PATTERN = re.compile(
+    r'^\$HEX\[(?P<hexascii>[a-f0-9]+)\]$'
+)
 
 
 class User(object):
@@ -110,6 +114,22 @@ class User(object):
             )
         else:
             self.full_username = self.username
+
+        # It appears that hashcat thinks the following results in an NT hash
+        # that equals the "empty" NT hash.
+        # Not sure why this happens, but we'll fix it here
+        if self.password == '$HEX[e0e09f9fb8b830303430373039353539e0b89fe0b8b3]':  # noqa
+            self.password = ''
+
+        # Let's also try to convert other HEX passwords.
+        # Hashcat appears to insert spurious non-printable characters
+        # sometimes. Passwords must be printable so doing the following will
+        # probably lead to less errors compared to not doing it.
+        if self.password:
+            m = HEX_PATTERN.search(self.password)
+            if m:
+                bin_p = binascii.unhexlify(m.group('hexascii'))
+                self.password = bin_p.decode(errors='ignore')
 
     def is_disabled(self):
         if self.comment and 'status=Disabled' in self.comment:
