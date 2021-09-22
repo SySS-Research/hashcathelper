@@ -69,11 +69,14 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         raise RuntimeError("Hashcat exited with an error")
 
     # Retrieve result
-    output_file = hashfile + '.out'
+    output_file = tempfile.NamedTemporaryFile(
+        delete=False, dir=directory, mode='w', suffix='_show',
+    )
+    output_file.close()
     show_command = base_command + ['--show']
     show_command += [
         '--outfile-format', '2',
-        '--outfile', output_file,
+        '--outfile', output_file.name,
     ]
 
     p = subprocess.Popen(
@@ -93,14 +96,14 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         output_file_cleaned = tempfile.NamedTemporaryFile(
             delete=False, dir=directory, mode='w', suffix='pwonly',
         )
-        with open(output_file, 'r') as fp:
-            for line in fp.splitlines():
-                u = User(line.decode())
+        with open(output_file.name, 'r') as fp:
+            for line in fp.readlines():
+                u = User(line)
                 output_file_cleaned.write(u.password + '\n')
         output_file_cleaned.close()
         result = output_file_cleaned.name
     else:
-        result = output_file
+        result = output_file.name
     return result
 
 
