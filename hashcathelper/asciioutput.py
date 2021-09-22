@@ -8,6 +8,8 @@ def pretty_print(report):
     out = []
 
     charts = ""
+    # Iterate through the report. Dicts become histograms,
+    # everything else becomes a table.
     for k, v in report.items():
         if isinstance(v, dict):
             charts += histogram(v, title=labels.get(k, k))

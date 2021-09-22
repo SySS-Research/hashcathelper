@@ -36,7 +36,7 @@ case insensitive.
 
 args.append(argument(
     '-f', '--format',
-    choices=['text', 'json'],
+    choices=['text', 'json', 'html'],
     default='text',
     help="output format (default: %(default)s)",
 ))
@@ -52,7 +52,6 @@ args.append(argument(
 def analytics(args):
     '''Output interesting statistics'''
     from hashcathelper.analytics import create_report
-    from hashcathelper.asciioutput import pretty_print
 
     report = create_report(
         args.hashes,
@@ -68,8 +67,14 @@ def analytics(args):
         import json
         out = json.dumps(report, indent=4)
     elif args.format == 'text':
+        from hashcathelper.asciioutput import pretty_print
         out = pretty_print(report['report'])
         out += pretty_print(report['sensitive'])
+    elif args.format == 'html':
+        from hashcathelper.html import html_print
+        mod_report = report['report']
+        mod_report.update(report['sensitive'])
+        out = html_print(mod_report)
 
     if args.outfile:
         with open(args.outfile, 'w') as f:
