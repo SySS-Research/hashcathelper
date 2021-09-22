@@ -1,5 +1,4 @@
 import re
-import collections
 
 
 def prcnt(a, b=None):
@@ -63,55 +62,61 @@ def expand_DES_key(key):
     return b''.join([x.to_bytes(1, byteorder='big') for x in s])
 
 
+USER_PATTERN = re.compile(
+    r'(?P<upn_suffix>[^\\]+\\)?(?P<username>[^:]+)$'
+)
 USER_PASS_PATTERN = re.compile(
-    r'([^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$'
+    r'(?P<upn_suffix>[^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$'
 )
 PWDUMP_PATTERN = re.compile(
-    r'((?P<domain>[^\\]+)\\)?(?P<username>[^:]+):'
+    r'((?P<upn_suffix>[^\\]+)\\)?(?P<username>[^:]+):'
     r'(?P<id>[0-9]+):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32}):::'
     r'(?P<comment>.*)'
 )
 
 
-def parse_pwdump_line(line):
-    """Takes line of a file and returns dictionary containing username and
-    password.
+class User(object):
+    attributes = 'username upn_suffix id lmhash nthash password comment'\
+            .split()
 
-    The format of the file must be like this:
-        <suffix>\\<username>:<ID>:<LM Hash>:<NT Hash>:::<Comment>
-    """
-    attrs = (
-        'username domain id lmhash nthash comment full_username'
-    ).split()
-    PWDumpLine = collections.namedtuple('PWDumpLine', attrs)
-    regex = PWDUMP_PATTERN.search(line)
-    result = {}
-    for a in attrs:
-        try:
-            result[a] = regex.group(a)
-        except IndexError:
-            pass
-    result['full_username'] = '%s\\%s' % (
-        regex.group('domain'),
-        regex.group('username'),
-    )
-    return PWDumpLine(**result)
+    def __init__(self, line):
+        for p in [
+            PWDUMP_PATTERN,
+            USER_PASS_PATTERN,
+            USER_PATTERN,
+        ]:
+            m = p.search(line)
+            if m:
+                break
+        if not m:
+            raise ValueError("Could not parse line: %s" % line)
 
+        for a in self.attributes:
+            try:
+                setattr(self, a, m.group(a).strip())
+            except IndexError:
+                # "no such group"
+                setattr(self, a, None)
 
-def parse_user_pass(line, lower=True):
-    """Takes line of a file and returns dictionary containing username and
-    password.
+        if not self.username:
+            raise ValueError("Could not parse line: %s" % line)
 
-    The format of the file must be like this:
-        contoso.local\\username:Password123
+        # Set full_username; won't really be used though
+        if self.upn_suffix:
+            self.full_username = '%s\\%s' % (
+                self.upn_suffix,
+                self.username,
+            )
+        else:
+            self.full_username = self.username
 
-    """
+    def is_computer_account(self):
+        return self.username.endswith('$')
 
-    regex = USER_PASS_PATTERN.search(line)
-    username = regex.group('username').lower()
-    password = regex.group('password').lower()
-    result = dict(
-        username=username,
-        password=password,
-    )
-    return result
+    def __eq__(self, b):
+        if isinstance(b, User):
+            b = b.username
+        if not isinstance(b, str):
+            raise TypeError("Can't compare User object with type %s" %
+                            type(b).__name__)
+        return self.username.lower() == b.lower()

@@ -4,7 +4,7 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import prcnt, parse_user_pass, parse_pwdump_line
+from hashcathelper.utils import prcnt, User
 
 log = logging.getLogger(__name__)
 
@@ -93,13 +93,18 @@ def get_char_classes(passwords):
     return counts
 
 
-def load_lines(path):
+def load_lines(path, as_user=True):
+    result = []
     if path:
         with open(path, 'r', encoding="utf-8", errors="replace") as f:
-            content = f.read()
-        result = content.splitlines()
-    else:
-        result = []
+            for line in f.readlines():
+                if as_user:
+                    try:
+                        result.append(User(line))
+                    except Exception as e:
+                        log.error(str(e))
+                else:
+                    result.append(line)
     return result
 
 
@@ -160,12 +165,8 @@ def analyze_passwords(report, passwords):
 
 def count_user_equal_password(report, accounts_plus_passwords):
     count = 0
-    for line in accounts_plus_passwords:
-        user = line.split(':')[0]
-        password = ':'.join(line.split(':')[1:])
-        if '\\' in user:
-            user = user.split('\\')[1]
-        if user.lower() == password.lower():
+    for u in accounts_plus_passwords:
+        if u == u.password:
             count += 1
     report['user_equals_password'] = (
         count,
@@ -184,10 +185,10 @@ def analyze_hashes(report, hashes, passwords):
         )
     lm_hash_count = 0
     computer_acc_count = 0
-    for line in hashes:
-        if ':%s:' % LM_EMPTY not in line:
+    for u in hashes:
+        if u.lmhash != LM_EMPTY:
             lm_hash_count += 1
-        if re.match(r'^[^:]*\$:.*$', line):
+        if u.is_computer_account():
             computer_acc_count += 1
 
     if computer_acc_count:
@@ -202,7 +203,7 @@ def analyze_hashes(report, hashes, passwords):
     )
 
     # Clusters
-    nt_hashes = [line.split(':')[3] for line in hashes]
+    nt_hashes = [u.nthash for u in hashes]
     cluster_analysis(report, nt_hashes, empty=NT_EMPTY)
 
 
@@ -215,23 +216,20 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
     Accounts are assumed to be case-insensitive. The UPN suffix (e.g. the
     domain name) is ignored if there is one.
 
-    `report` must be a suitable dictionary, the other args lists of strings.
+    `report` must be a suitable dictionary, the other args lists of `User()`.
     """
-
-    remove = set(line.lower() for line in remove)
-    keep_only = set(line.lower() for line in keep_only)
 
     # Remove entries from first list
     if accounts_plus_passwords:
         before = len(accounts_plus_passwords)
         accounts_plus_passwords = [
-            p for p in accounts_plus_passwords
-            if parse_user_pass(p)['username'] not in remove
+            u for u in accounts_plus_passwords
+            if u not in remove
         ]
         if keep_only:
             accounts_plus_passwords = [
-                p for p in accounts_plus_passwords
-                if parse_user_pass(p)['username'] in keep_only
+                u for u in accounts_plus_passwords
+                if u in keep_only
             ]
         after = len(accounts_plus_passwords)
         report['total_accounts'] = before
@@ -241,12 +239,12 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
     if hashes:
         before = len(hashes)
         hashes = [
-            p for p in hashes
-            if parse_user_pass(p)['username'] not in remove
+            u for u in hashes
+            if u not in remove
         ]
         if keep_only:
-            hashes = [h for h in hashes
-                      if parse_user_pass(h)['username'] in keep_only]
+            hashes = [u for u in hashes
+                      if u in keep_only]
         after = len(hashes)
         report['total_accounts'] = before
         report['removed'] = before - after
@@ -273,19 +271,18 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     # Load data from files
     hashes = load_lines(hashes)
     accounts_plus_passwords = load_lines(accounts_plus_passwords)
-    passwords = load_lines(passwords)
+    passwords = load_lines(passwords, as_user=False)
     filter_accounts = load_lines(filter_accounts)
 
     # Remove computer accounts and accounts marked by hashcat as 'disabled'
     disabled = []
     computer_accounts = []
     if not include_disabled or not include_computer_accounts:
-        for line in hashes:
-            pwdump_line = parse_pwdump_line(line)
-            if 'status=Disabled' in pwdump_line.comment:
-                disabled.append(pwdump_line.username)
-            if pwdump_line.username.endswith('$'):
-                computer_accounts.append(pwdump_line.username)
+        for u in hashes:
+            if 'status=Disabled' in u.comment:
+                disabled.append(u)
+            if u.is_computer_account():
+                computer_accounts.append(u)
 
     # Filter accounts
     if filter_accounts:
@@ -315,8 +312,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
 
     # Remove account names now that they are filtered
     if not passwords and accounts_plus_passwords:
-        passwords = [':'.join(line.split(':')[1:])
-                     for line in accounts_plus_passwords]
+        passwords = [u.password for u in accounts_plus_passwords]
 
     # Analyze hashes only
     if hashes:
@@ -339,19 +335,16 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         'user_equals_password': [],
         'user_similarto_password': [],
     }
-    for line in accounts_plus_passwords:
-        line_parsed = parse_user_pass(line)
-        username = line_parsed['username']
-        password = line_parsed['password']
-        if len(password) < pw_min_length:
-            details['short_password'][len(password)].append(username)
-        if username.lower() == password.lower():
-            details['user_equals_password'].append(username)
-        elif (password and (
-            username.lower() in password.lower()
-            or password.lower() in username.lower()
+    for u in accounts_plus_passwords:
+        if len(u.password) < pw_min_length:
+            details['short_password'][len(u.password)].append(u.username)
+        if u.username.lower() == u.password.lower():
+            details['user_equals_password'].append(u.username)
+        elif (u.password and (
+            u.username.lower() in u.password.lower()
+            or u.password.lower() in u.username.lower()
         )):
-            details['user_similarto_password'].append(username)
+            details['user_similarto_password'].append(u.username)
 
     result = collections.OrderedDict(
         meta=meta,
