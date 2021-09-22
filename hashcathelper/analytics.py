@@ -279,10 +279,11 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
     computer_accounts = []
     if not include_disabled or not include_computer_accounts:
         for u in hashes:
-            if 'status=Disabled' in u.comment:
+            if u.is_disabled():
                 disabled.append(u)
             if u.is_computer_account():
                 computer_accounts.append(u)
+    print(disabled)
 
     # Filter accounts
     if filter_accounts:

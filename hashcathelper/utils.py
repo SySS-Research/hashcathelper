@@ -111,6 +111,11 @@ class User(object):
         else:
             self.full_username = self.username
 
+    def is_disabled(self):
+        if self.comment and 'status=Disabled' in self.comment:
+            return True
+        return False
+
     def is_computer_account(self):
         return self.username.endswith('$')
 
