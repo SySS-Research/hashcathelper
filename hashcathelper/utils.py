@@ -62,16 +62,13 @@ def expand_DES_key(key):
     return b''.join([x.to_bytes(1, byteorder='big') for x in s])
 
 
-USER_PATTERN = re.compile(
-    r'(?P<upn_suffix>[^\\]+\\)?(?P<username>[^:]+)$'
-)
-USER_PASS_PATTERN = re.compile(
-    r'(?P<upn_suffix>[^\\]+\\)?(?P<username>[^:]+):(?P<password>.*)$'
-)
+USER_REGEX = r'^((?P<upn_suffix>[A-Za-z0-9_\.-]+)\\)?(?P<username>[^:]+)'
+USER_PATTERN = re.compile(USER_REGEX + '$')
+USER_PASS_PATTERN = re.compile(USER_REGEX + r':(?P<password>.*)$')
 PWDUMP_PATTERN = re.compile(
-    r'((?P<upn_suffix>[^\\]+)\\)?(?P<username>[^:]+):'
-    r'(?P<id>[0-9]+):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32}):::'
-    r'(?P<comment>.*)'
+    USER_REGEX +
+    r':(?P<id>[0-9]*):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32})'
+    r':::(?P<comment>.*)$'
 )
 
 
@@ -93,7 +90,10 @@ class User(object):
 
         for a in self.attributes:
             try:
-                setattr(self, a, m.group(a).strip())
+                val = m.group(a)
+                if val:
+                    val = val.strip()
+                setattr(self, a, val)
             except IndexError:
                 # "no such group"
                 setattr(self, a, None)
