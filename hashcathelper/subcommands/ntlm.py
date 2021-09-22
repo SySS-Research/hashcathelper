@@ -35,8 +35,6 @@ def ntlm(args):
     import shutil
     import tempfile
 
-    from hashcathelper.hashcat import crack_pwdump
-
     config = parse_config(args.config)
 
     do_sanity_check(config)
@@ -47,47 +45,42 @@ def ntlm(args):
     )
     log.info("Created temporary directory: %s" % TEMP_DIR)
 
-    skip_lm = False
     if len(args.hashfile) == 1:
-        log.info("Starting hashcat...")
-        if args.skip_lm:
-            skip_lm = True
-        if not check_lm_hashes(args.hashfile[0]):
-            log.info("No LM hashes found")
-            skip_lm = True
-        password_file = crack_pwdump(
-            config.hashcat_bin,
-            args.hashfile[0],
-            TEMP_DIR,
-            config.wordlist,
-            config.rule,
-            skip_lm=skip_lm,
-        )
+        password_file = run_hashcat(args.hashfile[0], args.skip_lm, config,
+                                    TEMP_DIR)
         result = copy_result(password_file, args.hashfile[0], args.suffix)
-        log.info("Success! Output is in: %s" % result)
     else:
         log.info("Compiling files into one...")
         compiled_hashfile = compile_files(args.hashfile, TEMP_DIR)
-        log.info("Starting hashcat...")
-        if args.skip_lm:
-            skip_lm = True
-        if not check_lm_hashes(compiled_hashfile):
-            log.info("No LM hashes found")
-            skip_lm = True
-        password_file = crack_pwdump(
-            config.hashcat_bin,
-            compiled_hashfile,
-            TEMP_DIR,
-            config.wordlist,
-            config.rule,
-            skip_lm=skip_lm,
-        )
+        password_file = run_hashcat(compiled_hashfile, args.skip_lm, config,
+                                    TEMP_DIR)
         log.info("Decompiling files...")
         result = decompile_file(password_file, args.hashfile, args.suffix)
-        log.info("Success! Output is in: %s" % ', '.join(result))
+        result = ', '.join(result)
+    log.info("Success! Output is in: %s" % result)
     log.info("Deleting temporary directory...")
     shutil.rmtree(TEMP_DIR)
     log.info("Done.")
+
+
+def run_hashcat(input_file, skip_lm, config, temp_dir):
+    from hashcathelper.hashcat import crack_pwdump
+    log.info("Starting hashcat...")
+    _skip_lm = False
+    if skip_lm:
+        _skip_lm = True
+    if not check_lm_hashes(input_file):
+        log.info("No LM hashes found")
+        _skip_lm = True
+    password_file = crack_pwdump(
+        config.hashcat_bin,
+        input_file,
+        temp_dir,
+        config.wordlist,
+        config.rule,
+        skip_lm=_skip_lm,
+    )
+    return password_file
 
 
 def do_sanity_check(config):
