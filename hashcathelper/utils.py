@@ -140,6 +140,8 @@ class User(object):
         return self.username.endswith('$')
 
     def __eq__(self, b):
+        if b is None:
+            return False
         if isinstance(b, User):
             b = b.username
         if not isinstance(b, str):
