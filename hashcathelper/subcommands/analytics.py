@@ -66,15 +66,11 @@ def analytics(args):
     if args.format == 'json':
         import json
         out = json.dumps(report, indent=4)
-    elif args.format == 'text':
-        from hashcathelper.asciioutput import pretty_print
-        out = pretty_print(report['report'])
-        out += pretty_print(report['sensitive'])
-    elif args.format == 'html':
-        from hashcathelper.html import html_print
+    elif args.format in ['text', 'html']:
+        from hashcathelper.outputformats import export
         mod_report = report['report']
         mod_report.update(report['sensitive'])
-        out = html_print(mod_report)
+        out = export(mod_report, args.format)
 
     if args.outfile:
         with open(args.outfile, 'w') as f:
