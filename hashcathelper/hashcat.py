@@ -23,8 +23,9 @@ def prepend_usernames(wordlists, hashfile, directory='.'):
     )
     with open(hashfile, 'r') as fp:
         for line in fp.readlines():
-            u = User(line)
-            user_file.write(u.username + '\n')
+            if line.strip():
+                u = User(line)
+                user_file.write(u.username + '\n')
     user_file.close()
     wordlists.insert(0, user_file.name)
 
