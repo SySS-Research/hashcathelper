@@ -4,8 +4,12 @@ log = logging.getLogger(__name__)
 
 css = """
   <style>
-    .chart text {
+    .chart .label {
       text-anchor: end;
+      font-family: monospace;
+    }
+    .chart .number {
+      text-anchor: begin;
       font-family: monospace;
     }
   </style>
@@ -14,7 +18,7 @@ css = """
 HEADER = dict(
     text="",
     html="""
-<html><head><title>Hashcat Helper Report</title>%s</head><body
+<html><head><title>Hashcat Helper Report</title>%s</head><body>
     """ % css,
 )
 
@@ -132,10 +136,11 @@ def histogram_html(dct, title, width=500):
     out = "<h1>%s</h1>" % title
     out += """<svg class="chart" width="100%" height="120">"""
     bar_template = """
-    <g transform="translate(150,%(y)d)">
-      <rect width="%(width)d" height="19" fill="red"></rect>
-      <text x="%(pos)d" y="9.5" dy=".35em">%(text)s</text>
-    </g>
+<g transform="translate(150,%(y)d)">
+  <rect width="%(width)d" height="19" fill="red"></rect>
+  <text class="label" x="%(labelpos)d" y="9.5" dy=".35em">%(text)s</text>
+  <text class="number" x="%(numberpos)d" y="9.5" dy=".35em">%(number)s</text>
+</g>
     """
 
     maxval = max(dct.values())
@@ -143,11 +148,14 @@ def histogram_html(dct, title, width=500):
     for k, v in dct.items():
         if k == '':
             k = '&lt;BLANK&gt;'
+        width_px = int(width * v/maxval)
         row = dict(
             text=k,
-            width=int(width * v/maxval),
+            width=width_px,
             y=y,
-            pos=0,
+            labelpos=-2,
+            numberpos=width_px+2,
+            number=v,
         )
         out += (bar_template % row)
         y += 20
