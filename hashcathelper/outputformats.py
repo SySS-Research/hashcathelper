@@ -119,16 +119,9 @@ def histogram_text(dct, title='', width=50, indent=4):
 
 
 def format_table_html(tab):
+    from tabulate import tabulate
     out = "<h1>Key quantities</h1>"
-    out += """
-    <table><thead><tr><th>Quantity</th><th>Description</th></tr></thead><tbody>
-    """
-    row_template = "<tr><td>%s</td><td>%s</td></tr>"
-
-    for row in tab:
-        out += row_template % (row[0], row[1])
-
-    out += "</tbody></table>"
+    out += tabulate(tab, headers=["Value", "Description"], tablefmt='html')
     return out
 
 
