@@ -352,11 +352,14 @@ def get_stats(entry, all_entries):
         'average_password_length',
     ]
 
-    # Copy ORMs to dicts and normalize relative quantities
+    # If entry is a dict, convert to namedtuple that mimics an ORM.
+    # Yes, we convert it back to a dict in the next step, but it also does
+    # normalization.
     if isinstance(entry, dict):
         from collections import namedtuple
         ShortReport = namedtuple('ShortReport', entry.keys())
         entry = ShortReport(**entry)
+    # Copy ORMs to dicts and normalize relative quantities
     entry = orm_to_dict(entry, relative_quantities, absolute_quantities)
     all_entries = [
         orm_to_dict(e, relative_quantities, absolute_quantities)
