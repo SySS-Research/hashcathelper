@@ -389,6 +389,8 @@ def create_short_report(
     hashcat_version,
     data,
 ):
+    """Produce a dictionary that can be submitted to the DB"""
+
     from datetime import datetime as dt
     from hashcathelper._meta import __version__
     try:
