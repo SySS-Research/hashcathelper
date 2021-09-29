@@ -220,7 +220,7 @@ args_stats.append(argument(
 
 args_stats.append(argument(
     '-f', '--format',
-    choices=['text', 'json'],
+    choices=['text', 'json', 'html'],
     default='text',
     help="output format (default: %(default)s)",
 ))
@@ -265,7 +265,7 @@ def stats(args):
 
     result = get_stats(r, all_entries)
 
-    if args.format == 'text':
+    if args.format in ['text', 'html']:
         from tabulate import tabulate
         from hashcathelper.consts import labels
         data = [[labels.get(k, k) + ' (%)']+v for k, v in result.items()]
@@ -273,14 +273,17 @@ def stats(args):
         # Remove percentage on average pw length
         data[-1][0] = data[-1][0][:-4]
 
-        print("The database holds information about %d accounts in %d entries."
-              % (total_accounts, total_entries))
+        out = (
+            "The database holds information about %d accounts in %d entries.\n"
+            % (total_accounts, total_entries)
+        )
 
-        out = tabulate(
+        out += tabulate(
             data,
             headers=[
                 "Key", "Value", "Mean", "Std. Dev.", "Perc.",
             ],
+            tablefmt={'text': 'plain', 'html': 'html'}[args.format],
         )
     elif args.format == 'json':
         import json
