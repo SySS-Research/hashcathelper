@@ -94,17 +94,23 @@ def get_char_classes(passwords):
 
 
 def load_lines(path, as_user=True):
+    """Load file and parse each line as `User()`"""
+    if not path:
+        return []
+
     result = []
-    if path:
-        with open(path, 'r', encoding="utf-8", errors="replace") as f:
-            for line in f.readlines():
-                if as_user:
-                    try:
-                        result.append(User(line))
-                    except Exception as e:
-                        log.error(str(e))
-                else:
-                    result.append(line)
+    with open(path, 'r', encoding="utf-8", errors="replace") as f:
+        for i, line in enumerate(f.readlines()):
+            if as_user:
+                try:
+                    result.append(User(line))
+                except Exception as e:
+                    log.error(
+                        "Error while parsing line %s:%d: %s" %
+                        (path, i, str(e))
+                    )
+            else:
+                result.append(line)
     return result
 
 
