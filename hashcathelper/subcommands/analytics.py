@@ -47,6 +47,13 @@ args.append(argument(
     help="path to an output file (default: stdout)",
 ))
 
+args.append(argument(
+    '-d', '--details',
+    default=False,
+    action='store_true',
+    help="produce a more detailed report (default: %(default)s)",
+))
+
 
 @subcommand(args)
 def analytics(args):
@@ -58,6 +65,7 @@ def analytics(args):
         args.accounts_plus_passwords,
         args.passwords_only,
         args.filter_accounts,
+        details=args.details,
     )
 
     if not report:

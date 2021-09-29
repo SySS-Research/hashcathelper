@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support generating stats of reports without submitting them to the
   database first
 - Support HTML format in `analytics` subcommand
+- Add the `--details` switch in `analytics` subcommand
+- Add clusters to detailed report
 
 ### Changed
 

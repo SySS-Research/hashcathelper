@@ -4,7 +4,7 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import prcnt, User
+from hashcathelper.utils import prcnt, User, get_nthash
 
 log = logging.getLogger(__name__)
 
@@ -259,7 +259,7 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
 
 
 def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
-                  filter_accounts=None, pw_min_length=6,
+                  filter_accounts=None, pw_min_length=6, details=False,
                   include_disabled=False, include_computer_accounts=False):
     log.info("Creating report...")
     report = collections.OrderedDict()
@@ -335,29 +335,52 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
             sensitive[k] = report[k]
             del report[k]
 
-    # Find accounts with short passwords
-    details = {
-        'short_password': {i: [] for i in range(pw_min_length)},
-        'user_equals_password': [],
-        'user_similarto_password': [],
-    }
-    for u in accounts_plus_passwords:
-        if len(u.password) < pw_min_length:
-            details['short_password'][len(u.password)].append(u.username)
-        if u.username.lower() == u.password.lower():
-            details['user_equals_password'].append(u.username)
-        elif (u.password and (
-            u.username.lower() in u.password.lower()
-            or u.password.lower() in u.username.lower()
-        )):
-            details['user_similarto_password'].append(u.username)
-
     result = collections.OrderedDict(
         meta=meta,
         report=report,
         sensitive=sensitive,
-        details=details,
     )
+
+    if details:
+        # Add details: accounts with short passwords; clusters
+        details = {
+            'short_password': {i: [] for i in range(pw_min_length)},
+            'user_equals_password': [],
+            'user_similarto_password': [],
+        }
+        for u in accounts_plus_passwords:
+            if len(u.password) < pw_min_length:
+                details['short_password'][len(u.password)].append(u.username)
+            if u.username.lower() == u.password.lower():
+                details['user_equals_password'].append(u.username)
+            elif (u.password and (
+                u.username.lower() in u.password.lower()
+                or u.password.lower() in u.username.lower()
+            )):
+                details['user_similarto_password'].append(u.username)
+
+        # Find clusters
+        clusters = collections.defaultdict(list)
+        for u in hashes:
+            clusters[u.nthash].append(u.username)
+        # Remove non-clusters
+        for h in list(clusters.keys()):
+            if len(clusters[h]) == 1:
+                del clusters[h]
+        # Replace hashes with passwords where possible
+        # Build dict of nthash->password to avoid n^2 loop
+        hash_map = {
+            get_nthash(u.password.encode()).decode(): u.password
+            for u in accounts_plus_passwords
+        }
+        for h in list(clusters.keys()):
+            if h in hash_map:
+                log.debug(h, hash_map[h])
+                clusters[hash_map[h]] = clusters[h]
+                del clusters[h]
+        details['clusters'] = clusters
+        result['details'] = details
+
     return result
 
 
