@@ -4,7 +4,9 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import prcnt, User, get_nthash
+from hashcathelper.utils import User, get_nthash
+from hashcathelper.outputformats import Table, Report, Section, Histogram,\
+    RelativeQuantity, LongTable, List
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +26,17 @@ def average(lst):
     return int(100 * sum(lst)/len(lst))/100
 
 
-def get_top_basewords(passwords):
+def get_top_passwords(passwords, n=10):
+    return Histogram(collections.OrderedDict(
+        filter(
+            lambda x: x[1] > 1,
+            collections.Counter(passwords).most_common(n),
+        )),
+        "top10_passwords",
+    )
+
+
+def get_top_basewords(passwords, n=10):
     counts = collections.Counter()
     for p in passwords:
         if not p:
@@ -66,7 +78,8 @@ def get_top_basewords(passwords):
     for k in counts.copy():
         if counts[k] == 1 or len(k) < 3:
             del counts[k]
-    return counts.most_common(10)
+    top10 = collections.OrderedDict(counts.most_common(n))
+    return Histogram(top10, "top10_basewords")
 
 
 def get_char_classes(passwords):
@@ -138,57 +151,46 @@ def do_sanity_check(hashes, accounts_plus_passwords, passwords,
         )
 
 
-def analyze_passwords(report, passwords):
-    if 'accounts' not in report:
-        report['accounts'] = len(passwords)
-    if 'total_accounts' not in report:
-        report['total_accounts'] = len(passwords)
+def analyze_passwords(table, passwords):
+    if 'accounts' not in table:
+        table['accounts'] = len(passwords)
+    if 'total_accounts' not in table:
+        table['total_accounts'] = len(passwords)
     lengths = [len(p) for p in passwords]
-    report['average_password_length'] = average(lengths)
-    report['median_password_length'] = median(lengths)
-    report['password_length_count'] = sort_dict(
+    table['average_password_length'] = average(lengths)
+    table['median_password_length'] = median(lengths)
+    password_length_count = Histogram(sort_dict(
         collections.Counter(lengths)
+        ),
+        'password_length_count',
     )
     char_classes = get_char_classes(passwords)
-    report['char_class_count'] = sort_dict(char_classes)
-    report['average_character_classes'] = int(sum(
+    char_class_count = Histogram(sort_dict(char_classes),
+                                 'char_class_count')
+    table['average_character_classes'] = int(sum(
         k*v for k, v in char_classes.items()
     ) / len(passwords) * 100) / 100
 
-    report['top10_passwords'] = collections.OrderedDict(
-        filter(
-            lambda x: x[1] > 1,
-            collections.Counter(passwords).most_common(10),
-        )
-    )
-    report['top10_basewords'] = collections.OrderedDict(
-        get_top_basewords(passwords)
-    )
-
-    if 'cluster_count' not in report:
-        cluster_analysis(report, passwords, empty='')
+    return password_length_count, char_class_count
 
 
-def count_user_equal_password(report, accounts_plus_passwords):
+def count_user_equal_password(table, accounts_plus_passwords):
     count = 0
     for u in accounts_plus_passwords:
         if u == u.password:
             count += 1
-    report['user_equals_password'] = (
+    table['user_equals_password'] = RelativeQuantity(
         count,
-        prcnt(count, len(accounts_plus_passwords)),
+        len(accounts_plus_passwords),
     )
 
 
-def analyze_hashes(report, hashes, passwords):
-    report['accounts'] = len(hashes)
-    if 'total_accounts' not in report:
-        report['total_accounts'] = len(hashes)
+def analyze_hashes(table, hashes, passwords):
+    table['accounts'] = len(hashes)
+    if 'total_accounts' not in table:
+        table['total_accounts'] = len(hashes)
     if passwords:
-        report['cracked'] = (
-            len(passwords),
-            prcnt(len(passwords), len(hashes)),
-        )
+        table['cracked'] = RelativeQuantity(len(passwords), len(hashes))
     lm_hash_count = 0
     computer_acc_count = 0
     for u in hashes:
@@ -203,17 +205,10 @@ def analyze_hashes(report, hashes, passwords):
             % computer_acc_count
         )
 
-    report['lm_hash_count'] = (
-        lm_hash_count,
-        prcnt(lm_hash_count, report['accounts']),
-    )
-
-    # Clusters
-    nt_hashes = [u.nthash for u in hashes]
-    cluster_analysis(report, nt_hashes, empty=NT_EMPTY)
+    table['lm_hash_count'] = RelativeQuantity(lm_hash_count, table['accounts'])
 
 
-def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
+def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
                     keep_only=[]):
     """Remove all lines from `hashes` and `accounts_plus_passwords` which have a
     username which is either specified in `remove` or not specified in
@@ -222,8 +217,9 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
     Accounts are assumed to be case-insensitive. The UPN suffix (e.g. the
     domain name) is ignored if there is one.
 
-    `report` must be a suitable dictionary, the other args lists of `User()`.
+    `table` must be a suitable dictionary, the other args lists of `User()`.
     """
+    # TODO performance is poor; improve
 
     # Remove entries from first list
     if accounts_plus_passwords:
@@ -238,8 +234,8 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
                 if u in keep_only
             ]
         after = len(accounts_plus_passwords)
-        report['total_accounts'] = before
-        report['removed'] = before - after
+        table['total_accounts'] = before
+        table['removed'] = before - after
 
     # Remove entries from second list
     if hashes:
@@ -252,27 +248,28 @@ def remove_accounts(report, accounts_plus_passwords, hashes, remove=[],
             hashes = [u for u in hashes
                       if u in keep_only]
         after = len(hashes)
-        report['total_accounts'] = before
-        report['removed'] = before - after
+        table['total_accounts'] = before
+        table['removed'] = before - after
 
     return accounts_plus_passwords, hashes
 
 
-def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
-                  filter_accounts=None, pw_min_length=6, details=False,
-                  include_disabled=False, include_computer_accounts=False):
+def create_report(hashes=None, accounts_plus_passwords=None,
+                  passwords=None, filter_accounts=None, pw_min_length=6,
+                  details=False, include_disabled=False,
+                  include_computer_accounts=False):
     log.info("Creating report...")
-    report = collections.OrderedDict()
+    table = Table('key_quantities', collections.OrderedDict())
 
     do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts)
-    meta = collections.OrderedDict(
+    meta = Table('meta', collections.OrderedDict(
         filename_hashes=hashes,
         filename_result=accounts_plus_passwords,
         filename_passwords=passwords,
         filename_filter=filter_accounts,
         timestamp=str(dt.now()),
-    )
+    ))
 
     # Load data from files
     hashes = load_lines(hashes)
@@ -291,6 +288,7 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
                 computer_accounts.append(u)
 
     # Filter accounts
+    log.debug("Filter accounts")
     if filter_accounts:
         log.info("Only taking specified accounts into consideration")
     if disabled:
@@ -300,109 +298,144 @@ def create_report(hashes=None, accounts_plus_passwords=None, passwords=None,
         log.info("Removing %d computer accounts" % len(computer_accounts))
 
     accounts_plus_passwords, hashes = remove_accounts(
-        report,
+        table,
         accounts_plus_passwords,
         hashes,
         remove=disabled+computer_accounts,
         keep_only=filter_accounts,
     )
-    if report['removed'] == 0:
+    if table['removed'] == 0:
         log.warning(
             "No accounts filtered. Are you sure?"
             " At least inactive accounts should be filtered."
         )
+    log.debug("Removed %d accounts" % table['removed'])
 
     # Count accounts where user==password
     if accounts_plus_passwords:
-        count_user_equal_password(report, accounts_plus_passwords)
+        count_user_equal_password(table, accounts_plus_passwords)
 
     # Remove account names now that they are filtered
     if not passwords and accounts_plus_passwords:
         passwords = [u.password for u in accounts_plus_passwords]
 
     # Analyze hashes only
+    log.debug("Analyze hashes")
     if hashes:
-        analyze_hashes(report, hashes, passwords)
+        analyze_hashes(table, hashes, passwords)
+        nt_hashes = [u.nthash for u in hashes]
+        clusters = cluster_analysis(table, nt_hashes, empty=NT_EMPTY)
 
     # Analyze passwords
+    log.debug("Analyze passwords")
     if passwords:
-        analyze_passwords(report, passwords)
+        password_length_count, char_class_count = analyze_passwords(table,
+                                                                    passwords)
+        if not hashes:
+            clusters = cluster_analysis(table, passwords, empty='')
 
-    # Move sensitive information
-    sensitive = collections.OrderedDict()
-    for k in ['top10_passwords', 'top10_basewords']:
-        if k in report:
-            sensitive[k] = report[k]
-            del report[k]
+    result = Report("report")
+    result += meta
+    result += table
+    result += clusters
+    result += password_length_count
+    result += char_class_count
 
-    result = collections.OrderedDict(
-        meta=meta,
-        report=report,
-        sensitive=sensitive,
-    )
+    log.debug("Get top passwords")
+    s = Section("sensitive_data")
+    s += get_top_passwords(passwords)
+    s += get_top_basewords(passwords)
+    result += s
 
     if details:
         # Add details: accounts with short passwords; clusters
-        details = {
-            'short_password': {i: [] for i in range(pw_min_length)},
-            'user_equals_password': [],
-            'user_similarto_password': [],
-        }
-        for u in accounts_plus_passwords:
-            if len(u.password) < pw_min_length:
-                details['short_password'][len(u.password)].append(u.username)
-            if u.username.lower() == u.password.lower():
-                details['user_equals_password'].append(u.username)
-            elif (u.password and (
-                u.username.lower() in u.password.lower()
-                or u.password.lower() in u.username.lower()
-            )):
-                details['user_similarto_password'].append(u.username)
-
-        # Find clusters
-        clusters = collections.defaultdict(list)
-        for u in hashes:
-            clusters[u.nthash].append(u.username)
-        # Remove non-clusters
-        for h in list(clusters.keys()):
-            if len(clusters[h]) == 1:
-                del clusters[h]
-        # Replace hashes with passwords where possible
-        # Build dict of nthash->password to avoid n^2 loop
-        hash_map = {
-            get_nthash(u.password.encode()).decode(): u.password
-            for u in accounts_plus_passwords
-        }
-        for h in list(clusters.keys()):
-            if h in hash_map:
-                log.debug(h, hash_map[h])
-                clusters[hash_map[h]] = clusters[h]
-                del clusters[h]
-        details['clusters'] = clusters
-        result['details'] = details
+        details = gather_details(
+            hashes,
+            accounts_plus_passwords,
+            pw_min_length,
+        )
+        result += details
 
     return result
 
 
-def cluster_analysis(report, values, empty=''):
+def gather_details(hashes, accounts_plus_passwords, pw_min_length):
+    """Return a dictionary with details about the report
+
+    Contains:
+        * list of accounts with short passwords
+        * list of accounts where usename equals password (case insensitive)
+        * list of accounts where usename is similar to password (starts or
+          ends with password, case insensitive)
+        * list of clusters; either based on hash or based on password if
+          cracked
+    """
+    short_password = LongTable('short_password',
+                               {i: [] for i in range(pw_min_length)})
+    user_equals_password = List('user_equals_password', [])
+    user_similarto_password = List('user_similarto_password', [])
+
+    for u in accounts_plus_passwords:
+        if len(u.password) < pw_min_length:
+            short_password[len(u.password)].append(u.username)
+        if u.username.lower() == u.password.lower():
+            user_equals_password.append(u.username)
+        elif (u.password and (
+            u.username.lower() in u.password.lower()
+            or u.password.lower() in u.username.lower()
+        )):
+            user_similarto_password.append(u.username)
+
+    # Find clusters
+    clusters = collections.defaultdict(list)
+    for u in hashes:
+        clusters[u.nthash].append(u.username)
+
+    # Remove non-clusters
+    for h in list(clusters.keys()):
+        if len(clusters[h]) == 1:
+            del clusters[h]
+
+    # Replace hashes with passwords where possible
+    # Build dict of nthash->password to avoid n^2 loop
+    hash_map = {
+        get_nthash(u.password.encode()).decode(): u.password
+        for u in accounts_plus_passwords
+    }
+
+    for h in list(clusters.keys()):
+        if h in hash_map:
+            clusters[hash_map[h]] = clusters[h]
+            del clusters[h]
+    clusters = LongTable('clusters', clusters)
+
+    # Build section
+    details = Section('details')
+    details += clusters
+    details += user_equals_password
+    details += user_similarto_password
+    return details
+
+
+def cluster_analysis(table, values, empty=''):
     counter = collections.Counter(values)
     clusters = dict(c for c in counter.most_common() if c[1] > 1)
-    report['cluster_count'] = sort_dict(collections.Counter(
-        c for c in clusters.values() if c > 1
-    ))
+    cluster_count = Histogram(sort_dict(collections.Counter(
+            c for c in clusters.values() if c > 1
+        )),
+        'cluster_count',
+    )
 
-    if 'accounts' in report:
-        total = report['accounts']
+    if 'accounts' in table:
+        total = table['accounts']
     else:
         total = len(values)
 
     nonunique = sum(count for _, count in counter.items() if count > 1)
-    report['nonunique'] = (nonunique, prcnt(nonunique, total))
+    table['nonunique'] = RelativeQuantity(nonunique, total)
 
-    report['empty_password'] = (
-        counter[empty],
-        prcnt(counter[empty], total),
-    )
+    table['empty_password'] = RelativeQuantity(counter[empty], total)
+    return cluster_count
 
 
 def create_short_report(

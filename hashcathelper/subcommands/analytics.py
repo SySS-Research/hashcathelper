@@ -71,14 +71,7 @@ def analytics(args):
     if not report:
         exit(1)
 
-    if args.format == 'json':
-        import json
-        out = json.dumps(report, indent=4)
-    elif args.format in ['text', 'html']:
-        from hashcathelper.outputformats import export
-        mod_report = report['report']
-        mod_report.update(report['sensitive'])
-        out = export(mod_report, args.format)
+    out = report.export(args.format)
 
     if args.outfile:
         with open(args.outfile, 'w') as f:
