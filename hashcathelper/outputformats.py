@@ -2,6 +2,11 @@ import logging
 import json
 from collections import OrderedDict
 
+try:
+    from html import escape as htmlescape
+except ImportError:
+    from cgi import escape as htmlescape
+
 from hashcathelper.consts import labels
 
 from tabulate import tabulate
@@ -136,20 +141,25 @@ class List(list, Element):
         self.extend(data)
 
     def _export_html(self):
-        result = "<ul>"
+        result = "<b>%s</b><br/><ul>" % htmlescape(self._title)
         for i in self:
             result += "<li>%s</li>" % i
-            result += "</ul>"
+        result += "</ul>"
         return result
 
     def _export_text(self):
-        return "\n".join([" * %s" % x for x in self])
+        out = self._title + "\n"
+        out += "\n".join(["   * %s" % x for x in self])
+        out += "\n\n"
+        return out
 
     def as_json(self):
         return self
 
 
 class Table(OrderedDict, Element):
+    headers = ["Description", "Value"]
+
     def __init__(self, label, data, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         Element.__init__(self, label)
@@ -161,8 +171,12 @@ class Table(OrderedDict, Element):
         data = [[labels.get(k, k), str(v)] for k, v in self.items()]
         result = tabulate(
             data,
-            headers=["Value", "Description"],
+            headers=self.headers,
             tablefmt='html',
+        )
+        result = result.replace(
+            '<table>',
+            '<table><caption><b>%s<b></caption>' % htmlescape(self._title)
         )
         return result
 
@@ -173,9 +187,11 @@ class Table(OrderedDict, Element):
                 for label, value in self.items()}
         max_len = max(map(len, (x for x in data)))
         out = self._title + "\n"
-        out += ''.join("    %s%s%s\n" %
-                       (label, ' '*(max_len+2-len(label)), value)
-                       for label, value in data.items())
+        rows = [
+            "    %s%s%s\n" % (label, ' '*(max_len+2-len(label)), value)
+            for label, value in data.items()
+        ]
+        out += ''.join(rows)
         return out + "\n"
 
     def as_json(self):
@@ -183,7 +199,29 @@ class Table(OrderedDict, Element):
 
 
 class LongTable(Table):
-    pass
+    headers = []
+
+    def _export_html(self):
+        old = {k: v for k, v in self.items()}
+        new = {k: htmlescape(", ".join(v)) for k, v in self.items()}
+        self.clear()
+        self.update(new)
+        try:
+            return super()._export_html()
+        finally:
+            self.clear()
+            self.update(old)
+
+    def _export_text(self):
+        old = {k: v for k, v in self.items()}
+        new = {k: ", ".join(v) for k, v in self.items()}
+        self.clear()
+        self.update(new)
+        try:
+            return super()._export_text()
+        finally:
+            self.clear()
+            self.update(old)
 
 
 class Histogram(Element):
@@ -199,8 +237,10 @@ class Histogram(Element):
     def _export_html(self):
         if not self._data:
             return ""
-        out = "<h1>%s</h1>" % self._title
-        out += """<svg class="chart" width="100%" height="120">"""
+        out = """
+<svg role="img" aria-label="[%(title)s]" class="chart"
+width="100%%" height="120">
+<title>%(title)s</title>""" % dict(title=htmlescape(self._title))
         bar_template = """
 <g transform="translate(150,%(y)d)">
   <rect width="%(width)d" height="19" fill="red"></rect>
@@ -216,7 +256,7 @@ class Histogram(Element):
                 k = '&lt;BLANK&gt;'
             width_px = int(self.html_width * v/maxval)
             row = dict(
-                text=k,
+                text=htmlescape(str(k)),
                 width=width_px,
                 y=y,
                 labelpos=-2,
@@ -227,6 +267,9 @@ class Histogram(Element):
             y += 20
 
         out += "</svg>"
+        out = "<figure>" + (
+            "<figcaption><b>%s</b></figcaption>" % htmlescape(self._title)
+        ) + out + "</figure>"
         return out
 
     def _export_text(self):

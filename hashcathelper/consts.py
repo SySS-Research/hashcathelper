@@ -22,6 +22,8 @@ labels = dict(
     key_quantities="Key quantities",
     sensitive_data="Sensitive data",
     details="Details",
+    clusters="Clusters",
+    user_similarto_password="Accounts where username is similar to password",
 )
 
 
