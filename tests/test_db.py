@@ -48,7 +48,7 @@ def test_submit(config_file, monkeypatch):
         expected = json.load(fp)
 
     print(vars(r))
-    assert r.accounts == expected['report']['accounts']
+    assert r.accounts == expected['statistics']['key_quantities']['accounts']
     assert r.submitter_email == answers['submitter_email']
 
     # Test queries
@@ -85,22 +85,24 @@ def create_report(accounts, seed=0):
       "meta": {
         "timestamp": "2021-08-12 11:12:43.706036"
       },
-      "report": {
-        "removed": 0,
-        "user_equals_password": [
-          0,
-          0.0
-        ],
-        "total_accounts": accounts,
-        "accounts": accounts,
-        "cluster_count": {},
-        "average_password_length": average_password_length,
-        "median_password_length": 6,
-        "password_length_count": {},
-        "char_class_count": {},
-        "average_character_classes": 0
+      "statistics": {
+          "key_quantities": {
+            "removed": 0,
+            "user_equals_password": [
+              0,
+              0.0
+            ],
+            "total_accounts": accounts,
+            "accounts": accounts,
+            "cluster_count": {},
+            "average_password_length": average_password_length,
+            "median_password_length": 6,
+            "password_length_count": {},
+            "char_class_count": {},
+            "average_character_classes": 0
+          },
       },
-      "sensitive": {
+      "sensitive_data": {
         "top10_passwords": {},
         "top10_basewords": {
           "baseword1": largest_cluster,
@@ -118,7 +120,7 @@ def create_report(accounts, seed=0):
         'empty_password': (N/100, N/50),
     }.items():
         val = min(int(abs(random.gauss(*parameters))), N)
-        result['report'][a] = [val, 100*val/N]
+        result['statistics']['key_quantities'][a] = [val, 100*val/N]
 
     return result
 

@@ -42,6 +42,9 @@ class Element(object):
     def _export_json(self):
         return json.dumps(self, cls=ElementEncoder, indent=2)
 
+    def json(self):
+        return json.loads(json.dumps(self, cls=ElementEncoder))
+
 
 class RelativeQuantity(object):
     def __init__(self, numerator, denominator=100):

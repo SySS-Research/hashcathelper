@@ -465,14 +465,16 @@ def create_short_report(
         log.error("Failed to parse cracking date")
         cracking_date = None
 
+    key_quantities = data['statistics']['key_quantities']
+
     def get_value(item):
         # for values with percentage
-        val = data['report'][item]
+        val = key_quantities[item]
         if isinstance(val, list) and len(val) == 2:
             return val[0]
         return val
 
-    top_basewords = data['sensitive']['top10_basewords'].values()
+    top_basewords = data['sensitive_data']['top10_basewords'].values()
     if top_basewords:
         largest_cluster = max(top_basewords)
     else:
@@ -485,13 +487,13 @@ def create_short_report(
         rule_set=rule_set,
         hashcathelper_version=__version__,
         hashcat_version=hashcat_version,
-        accounts=data['report']['accounts'],
+        accounts=key_quantities['accounts'],
         cracked=get_value('cracked'),
         nonunique=get_value('nonunique'),
         user_equals_password=get_value('user_equals_password'),
         lm_hash_count=get_value('lm_hash_count'),
         empty_password=get_value('empty_password'),
-        average_password_length=data['report']['average_password_length'],
+        average_password_length=key_quantities['average_password_length'],
         largest_baseword_cluster=largest_cluster,
     )
     return r
