@@ -425,6 +425,7 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length):
     details += clusters
     details += user_equals_password
     details += user_similarto_password
+    details += short_password
     return details
 
 
