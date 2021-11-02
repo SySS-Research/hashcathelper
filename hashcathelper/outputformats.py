@@ -23,15 +23,19 @@ class ElementEncoder(json.JSONEncoder):
 
 
 class Element(object):
-    def __init__(self, label, title=None):
+    def __init__(self, label, title=None,
+                 formats=['json', 'html', 'text']):
         self._label = label
         if title:
             self._title = title
         else:
             self._title = labels.get(label, label)
+        self._formats = formats
 
     def export(self, format):
         assert format in ['html', 'text', 'json']
+        if format not in self._formats:
+            return ""
         f = getattr(self, '_export_%s' % format)
         return f()
 
@@ -136,8 +140,8 @@ class Report(Section):
 
 class List(list, Element):
     def __init__(self, label, data, *args, **kwargs):
-        list.__init__(self, *args, **kwargs)
-        Element.__init__(self, label)
+        list.__init__(self)
+        Element.__init__(self, label, *args, **kwargs)
         self.extend(data)
 
     def _export_html(self):
@@ -161,8 +165,8 @@ class Table(OrderedDict, Element):
     headers = ["Description", "Value"]
 
     def __init__(self, label, data, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        Element.__init__(self, label)
+        OrderedDict.__init__(self)
+        Element.__init__(self, label, *args, **kwargs)
         self.update(data)
 
     def _export_html(self):

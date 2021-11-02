@@ -48,10 +48,10 @@ args.append(argument(
 ))
 
 args.append(argument(
-    '-d', '--details',
-    default=False,
-    action='store_true',
-    help="produce a more detailed report (default: %(default)s)",
+    '-d', '--degree-of-detail',
+    default=2,
+    type=int,
+    help="change the degree of detail of the report (default: %(default)s)",
 ))
 
 
@@ -65,7 +65,7 @@ def analytics(args):
         args.accounts_plus_passwords,
         args.passwords_only,
         args.filter_accounts,
-        details=args.details,
+        degree_of_detail=args.degree_of_detail
     )
 
     if not report:

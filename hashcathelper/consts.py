@@ -18,6 +18,7 @@ labels = dict(
     user_equals_password="Accounts where username equals the password",
     largest_baseword_cluster="Largest baseword cluster",
     report="Report",
+    statistics="Statistics",
     meta="Meta information",
     key_quantities="Key quantities",
     sensitive_data="Sensitive data",

@@ -256,20 +256,24 @@ def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
 
 def create_report(hashes=None, accounts_plus_passwords=None,
                   passwords=None, filter_accounts=None, pw_min_length=6,
-                  details=False, include_disabled=False,
+                  degree_of_detail=1, include_disabled=False,
                   include_computer_accounts=False):
     log.info("Creating report...")
     table = Table('key_quantities', collections.OrderedDict())
 
     do_sanity_check(hashes, accounts_plus_passwords, passwords,
                     filter_accounts)
-    meta = Table('meta', collections.OrderedDict(
-        filename_hashes=hashes,
-        filename_result=accounts_plus_passwords,
-        filename_passwords=passwords,
-        filename_filter=filter_accounts,
-        timestamp=str(dt.now()),
-    ))
+    meta = Table(
+        'meta',
+        collections.OrderedDict(
+            filename_hashes=hashes,
+            filename_result=accounts_plus_passwords,
+            filename_passwords=passwords,
+            filename_filter=filter_accounts,
+            timestamp=str(dt.now()),
+        ),
+        formats=['json'],
+    )
 
     # Load data from files
     hashes = load_lines(hashes)
@@ -336,18 +340,23 @@ def create_report(hashes=None, accounts_plus_passwords=None,
 
     result = Report("report")
     result += meta
-    result += table
-    result += clusters
-    result += password_length_count
-    result += char_class_count
 
-    log.debug("Get top passwords")
-    s = Section("sensitive_data")
-    s += get_top_passwords(passwords)
-    s += get_top_basewords(passwords)
-    result += s
+    if degree_of_detail > 0:
+        statistics = Section("statistics")
+        statistics += table
+        statistics += clusters
+        statistics += password_length_count
+        statistics += char_class_count
+        result += statistics
 
-    if details:
+    if degree_of_detail > 1:
+        log.debug("Get top passwords")
+        s = Section("sensitive_data")
+        s += get_top_passwords(passwords)
+        s += get_top_basewords(passwords)
+        result += s
+
+    if degree_of_detail > 2:
         # Add details: accounts with short passwords; clusters
         details = gather_details(
             hashes,
