@@ -5,7 +5,7 @@ import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
 from hashcathelper.utils import User, get_nthash
-from hashcathelper.outputformats import Table, Report, Section, Histogram,\
+from hashcathelper.reporting import Table, Report, Section, Histogram,\
     RelativeQuantity, LongTable, List
 
 log = logging.getLogger(__name__)
