@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support generating stats of reports without submitting them to the
   database first
 - Support HTML format in `analytics` subcommand
-- Add the `--details` switch in `analytics` subcommand
+- Add the `--degree-of-detail` switch in `analytics` subcommand
 - Add clusters to detailed report
 
 ### Changed
@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ignore hashcat warnings when retrieving usernames (#4)
 - Check existence of critical files before running `ntlm` subcommand
 - Handle `$HEX[]` passwords
+- Improve the way information is presented in the reports
 
 ### Fixed
 
