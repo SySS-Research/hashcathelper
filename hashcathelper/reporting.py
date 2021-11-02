@@ -36,6 +36,8 @@ class Element(object):
         assert format in ['html', 'text', 'json']
         if format not in self._formats:
             return ""
+        if self.is_empty():
+            return ""
         f = getattr(self, '_export_%s' % format)
         return f()
 
@@ -44,6 +46,9 @@ class Element(object):
 
     def json(self):
         return json.loads(json.dumps(self, cls=ElementEncoder))
+
+    def is_empty(self):
+        return False
 
 
 class RelativeQuantity(object):
@@ -98,6 +103,9 @@ class Section(Element):
 
     def as_json(self):
         return self._elements
+
+    def is_empty(self):
+        return len(self._elements) == 0
 
 
 class Report(Section):
@@ -163,6 +171,9 @@ class List(list, Element):
     def as_json(self):
         return self
 
+    def is_empty(self):
+        return len(self) == 0
+
 
 class Table(OrderedDict, Element):
     headers = ["Description", "Value"]
@@ -205,6 +216,9 @@ class Table(OrderedDict, Element):
 
     def as_json(self):
         return self
+
+    def is_empty(self):
+        return len(self) == 0
 
 
 class LongTable(Table):
@@ -319,3 +333,6 @@ width="100%%" height="120">
 
     def as_json(self):
         return OrderedDict(self._data)
+
+    def is_empty(self):
+        return len(self._data) == 0
