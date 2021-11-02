@@ -65,6 +65,13 @@ $ hashcathelper analytics -f text \
     -F kerberoastable_accounts.txt
 ```
 
+The report comes as text, HTML, or in JSON. The different sections contain
+different degrees of detail:
+
+* 1: Only show statistics
+* 2 (default): Show some password information such as top 10 lists
+* 3: Include full credentials such as which accounts have blank passwords
+
 ### Subcommand "db"
 
 Use this subcommand to interact with the database.
