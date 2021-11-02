@@ -69,7 +69,7 @@ class Section(Element):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._level = 1
-        self._elements = {}
+        self._elements = OrderedDict()
 
     def __add__(self, element):
         if isinstance(element, Section):
@@ -190,8 +190,10 @@ class Table(OrderedDict, Element):
     def _export_text(self):
         if not self:
             return ""
-        data = {labels.get(label, label): value
-                for label, value in self.items()}
+        data = OrderedDict(
+            (labels.get(label, label), value)
+            for label, value in self.items()
+        )
         max_len = max(map(len, (x for x in data)))
         out = self._title + "\n"
         rows = [

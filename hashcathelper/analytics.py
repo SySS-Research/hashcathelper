@@ -379,8 +379,10 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length):
         * list of clusters; either based on hash or based on password if
           cracked
     """
-    short_password = LongTable('short_password',
-                               {i: [] for i in range(pw_min_length)})
+    short_password = LongTable(
+        'short_password',
+        collections.OrderedDict((i, []) for i in range(pw_min_length)),
+    )
     user_equals_password = List('user_equals_password', [])
     user_similarto_password = List('user_similarto_password', [])
 
