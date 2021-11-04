@@ -148,6 +148,9 @@ Largest baseword cluster (%)                       45.2    10.22        10      
 Average length of cracked passwords                 8.39    9.58         0.84        6
 ```
 
+The last column shows the percentile. It should be read as "this result is
+better than X% of all other results", so higher is better.
+
 ### UPN Suffix
 
 The output from hashcat contains lines that start with the account name. The
