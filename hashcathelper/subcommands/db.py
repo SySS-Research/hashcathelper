@@ -40,7 +40,11 @@ def submit(args):
     from hashcathelper.analytics import create_short_report
 
     session = get_session(args)
-    data = json.load(args.infile)
+    try:
+        data = json.load(args.infile)
+    except json.decoder.JSONDecodeError:
+        log.critical("Could not parse JSON data")
+        exit(1)
 
     config = parse_config(args.config)
     try:
