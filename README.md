@@ -52,7 +52,7 @@ in the pwdump file (like `secretsdump -user-status` does) will be disregarded.
 Additionally, you can pass the path to a file containing account names to be
 used as a filter. Only the accounts whose names are listed in this file will
 be considered. This is useful if you are only interested in statistics
-regarding active accounts and did not use `secretsdump -user-status), for
+regarding active accounts and did not use `secretsdump -user-status`), for
 example. Or you want the statistics regarding all accounts with `admin` in
 their name. Or statistics regarding kerberoastable users.
 
