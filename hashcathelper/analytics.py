@@ -106,13 +106,13 @@ def get_char_classes(passwords):
     return counts
 
 
-def load_lines(path, as_user=True, encoding='utf-8'):
+def load_lines(path, as_user=True):
     """Load file and parse each line as `User()`"""
     if not path:
         return []
 
     result = []
-    with open(path, 'r', encoding=encoding, errors='replace') as f:
+    with open(path, 'r', encoding="utf-8", errors="replace") as f:
         for i, line in enumerate(f.readlines()):
             if as_user:
                 try:
@@ -277,11 +277,7 @@ def create_report(hashes=None, accounts_plus_passwords=None,
 
     # Load data from files
     hashes = load_lines(hashes)
-    # this file probably comes from hashcat, so assume extended ascii
-    accounts_plus_passwords = load_lines(
-        accounts_plus_passwords,
-        encoding='ISO-8859-15',
-    )
+    accounts_plus_passwords = load_lines(accounts_plus_passwords)
     passwords = load_lines(passwords, as_user=False)
     filter_accounts = load_lines(filter_accounts)
 
