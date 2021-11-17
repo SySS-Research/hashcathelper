@@ -202,10 +202,10 @@ class Table(OrderedDict, Element):
         if not self:
             return ""
         data = OrderedDict(
-            (labels.get(label, label), value)
+            (str(labels.get(label, label)), value)
             for label, value in self.items()
         )
-        max_len = max(map(len, (x for x in data)))
+        max_len = max(len(x) for x in data)
         out = self._title + "\n"
         rows = [
             "    %s%s%s\n" % (label, ' '*(max_len+2-len(label)), value)
