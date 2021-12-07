@@ -76,14 +76,7 @@ def analytics(args):
 
     if args.format == 'xlsx':
         # xlsx is a bit special because it only contains the details
-        if not args.outfile:
-            log.critical("XLSX format requires OUTFILE to be specified.")
-            exit(1)
-        if not args.degree_of_detail > 2:
-            log.critical(
-                "XLSX format requires degree of detail greater than 2."
-            )
-            exit(1)
+        xlsx_sanity_check(args)
         save_to_xlsx(report, args.outfile)
     else:
         out = report.export(args.format)
@@ -95,9 +88,31 @@ def analytics(args):
             print(out, end='')
 
 
+def xlsx_sanity_check(args):
+    # Do some sanity checks here
+
+    # openpyxl requires py3.6
+    import sys
+    if sys.version_info < (3, 6, 0):
+        log.critical("XLSX format requires Python 3.6 or higher")
+        exit(1)
+
+    # Stdout does not make sense for xlsx as it's binary
+    if not args.outfile:
+        log.critical("XLSX format requires OUTFILE to be specified.")
+        exit(1)
+
+    # The xlsx will only contain the details, so not having the details
+    # makes no sense
+    if not args.degree_of_detail > 2:
+        log.critical(
+            "XLSX format requires degree of detail greater than 2."
+        )
+        exit(1)
+
+
 def save_to_xlsx(report, path):
     """Saves 'details' from the report to a spreadsheet"""
-
     from collections import OrderedDict
     import openpyxl as pyxl
     from hashcathelper.consts import labels
