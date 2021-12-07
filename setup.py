@@ -22,6 +22,7 @@ setuptools.setup(
         'pycryptodome',
         'sqlalchemy',
         'tabulate',
+        'openpyxl',
         'importlib-metadata<=2.1.1',
         # https://github.com/pypa/virtualenv/issues/2059
         # import_lib dropped support for py3.5 after 2.1.1
