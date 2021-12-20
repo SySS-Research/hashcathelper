@@ -10,7 +10,7 @@ help:
 	@echo "help - show this help and exit"
 
 deploy: hashcathelper.pyz
-	@echo scp hashcathelper.pyz $(SSH_TARGET):.local/bin/hashcathelper
+	@scp hashcathelper.pyz $(SSH_TARGET):.local/bin/hashcathelper
 
 hashcathelper.pyz: hashcathelper/
 	@$(eval TEMP_DIR := $(shell mktemp -d --suffix=.hashcathelper))
