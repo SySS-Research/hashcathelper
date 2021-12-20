@@ -1,3 +1,5 @@
+SSH_TARGET ?= hashcat01
+
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
 	@echo "lint - check style with flake8"
@@ -8,7 +10,7 @@ help:
 	@echo "help - show this help and exit"
 
 deploy: hashcathelper.pyz
-	@scp hashcathelper.pyz hashcat01:.local/bin/hashcathelper
+	@echo scp hashcathelper.pyz $(SSH_TARGET):.local/bin/hashcathelper
 
 hashcathelper.pyz: hashcathelper/
 	@$(eval TEMP_DIR := $(shell mktemp -d --suffix=.hashcathelper))
