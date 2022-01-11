@@ -51,6 +51,15 @@ args.append(argument(
 ))
 
 args.append(argument(
+    '-m', '--pw-min-length',
+    default=6,
+    type=int,
+    help="set minimum password length to identify accounts "
+         "with 'short' passwords (default: %(default)s)",
+))
+
+
+args.append(argument(
     '-d', '--degree-of-detail',
     default=2,
     type=int,
@@ -68,7 +77,8 @@ def analytics(args):
         args.accounts_plus_passwords,
         args.passwords_only,
         args.filter_accounts,
-        degree_of_detail=args.degree_of_detail
+        degree_of_detail=args.degree_of_detail,
+        pw_min_length=args.pw_min_length,
     )
 
     if not report:
