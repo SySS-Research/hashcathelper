@@ -1,6 +1,6 @@
 import logging
 
-from hashcathelper.args import subcommand, argument
+from hashcathelper.args import subcommand, argument, parse_config
 
 log = logging.getLogger(__name__)
 args = []
@@ -72,6 +72,7 @@ def analytics(args):
     '''Output interesting statistics'''
     from hashcathelper.analytics import create_report
 
+    config = parse_config(args.config)
     report = create_report(
         args.hashes,
         args.accounts_plus_passwords,
@@ -79,6 +80,7 @@ def analytics(args):
         args.filter_accounts,
         degree_of_detail=args.degree_of_detail,
         pw_min_length=args.pw_min_length,
+        hibp_db=config.hibp_db,
     )
 
     if not report:

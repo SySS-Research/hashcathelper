@@ -187,6 +187,11 @@ hash_speed = 60000
 
 # URI to database
 db_uri = sqlite:////home/cracker/.local/share/hashcathelper/stats.sqlite
+
+# Optional: Path to HIBP database
+# Must be a sorted list of NT hashes in upper case
+# Download here: https://haveibeenpwned.com/Passwords
+hibp_db = /home/cracker/wordlists/pwned-passwords-ntlm-ordered-by-hash-v8.txt
 ```
 
 The hash speed characterizes the power of the machine. Unit: MH/s

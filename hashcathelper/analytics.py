@@ -4,7 +4,7 @@ import logging
 import re
 
 from hashcathelper.consts import NT_EMPTY, LM_EMPTY
-from hashcathelper.utils import User, get_nthash
+from hashcathelper.utils import User, get_nthash, line_binary_search
 from hashcathelper.reporting import Table, Report, Section, Histogram,\
     RelativeQuantity, LongTable, List
 
@@ -254,10 +254,44 @@ def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
     return accounts_plus_passwords, hashes
 
 
+def get_hibp(hashes, hibp_db):
+    """Look up how many hashes are in the HIBP database
+
+    HIBP stands for Have I been Pwned. The HIBP database must be a flat,
+    sorted text file of NT hashes in the format `<NT hash in upper
+    case>:<count>`.
+
+    Arguments:
+        hashes: a list of `User` objects
+        hibp_db: path to the HIBP database
+
+    Returns:
+        A list of affected usernames
+    """
+
+    pos = 0
+    result = []
+    hashes.sort(key=lambda x: x.nthash)
+    for u in hashes:
+        h = u.nthash.upper().encode()
+        results, new_pos = line_binary_search(
+            hibp_db,
+            h,
+            lambda line: line[:32],
+            start=pos,
+        )
+        if results:
+            pos = new_pos
+            result.append(u.username)
+        else:
+            pass
+    return List('hibp_accounts', result)
+
+
 def create_report(hashes=None, accounts_plus_passwords=None,
                   passwords=None, filter_accounts=None, pw_min_length=6,
                   degree_of_detail=1, include_disabled=False,
-                  include_computer_accounts=False):
+                  include_computer_accounts=False, hibp_db=None):
     log.info("Creating report...")
     table = Table('key_quantities', collections.OrderedDict())
 
@@ -362,13 +396,14 @@ def create_report(hashes=None, accounts_plus_passwords=None,
             hashes,
             accounts_plus_passwords,
             pw_min_length,
+            hibp_db,
         )
         result += details
 
     return result
 
 
-def gather_details(hashes, accounts_plus_passwords, pw_min_length):
+def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
     """Return a dictionary with details about the report
 
     Contains:
@@ -426,6 +461,10 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length):
     details += user_equals_password
     details += user_similarto_password
     details += short_password
+    if hibp_db:
+        details += get_hibp(hashes, hibp_db)
+    else:
+        log.error("No HIBP database defined; skipping this detail")
     return details
 
 

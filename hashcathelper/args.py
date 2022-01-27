@@ -96,7 +96,7 @@ def parse_config(path):
                 'hashcathelper.conf',
             )
     config_parser.read(path)
-    attrs = 'rule wordlist hashcat_bin hash_speed db_uri'.split()
+    attrs = 'rule wordlist hashcat_bin hash_speed db_uri hibp_db'.split()
     for a in attrs:
         if a not in config_parser['DEFAULT']:
             log.error('Attribute undefined: ' + a)

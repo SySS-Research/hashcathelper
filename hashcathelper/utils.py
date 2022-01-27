@@ -1,3 +1,4 @@
+import os
 import re
 import binascii
 
@@ -151,3 +152,73 @@ class User(object):
 
     def __str__(self):
         return self.full_username
+
+
+def line_binary_search(filename, matchvalue, key=lambda val: val, start=0):
+    """
+    Binary search a file for matching lines.
+
+    Returns a list of matching lines.
+
+    filename - path to file, passed to 'open'
+    matchvalue - value to match
+    key - function to extract comparison value from line
+
+    >>> parser = lambda val: int(val.split('\t')[0].strip())
+    >>> line_binary_search('sd-arc', 63889187, parser)
+    ['63889187\t3592559\n', ...]
+
+    Source:
+    http://www.grantjenks.com/wiki/random/python_binary_search_file_by_line
+    """
+
+    # Must be greater than the maximum length of any line.
+
+    max_line_len = 2 ** 8
+
+    pos = start
+    end = os.path.getsize(filename)
+
+    with open(filename, 'rb') as fptr:
+        # Limit the number of times we binary search.
+        for rpt in range(50):
+            last = pos
+            pos = start + ((end - start) // 2)
+            fptr.seek(pos)
+
+            # Move the cursor to a newline boundary.
+            fptr.readline()
+            line = fptr.readline()
+            linevalue = key(line)
+
+            if linevalue == matchvalue or pos == last:
+                # Seek back until we no longer have a match.
+                while True:
+                    try:
+                        fptr.seek(-max_line_len, 1)
+                    except OSError:
+                        # We seek'ed beyond the beginning of the file
+                        fptr.seek(0)
+                        break
+                    fptr.readline()
+                    if matchvalue != key(fptr.readline()):
+                        break
+
+                # Seek forward to the first match.
+                for rpt in range(max_line_len):
+                    line = fptr.readline()
+                    linevalue = key(line)
+                    if matchvalue == linevalue:
+                        # Assume each line is unique
+                        return matchvalue, fptr.tell()
+                else:
+                    # No match was found.
+                    return None, None
+
+            elif linevalue < matchvalue:
+                start = fptr.tell()
+            else:
+                assert linevalue > matchvalue
+                end = fptr.tell()
+        else:
+            raise RuntimeError('binary search failed')
