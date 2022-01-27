@@ -1324,3 +1324,4 @@ contoso.local\Computer00007$:7:e52cac67419a9a224a3b108f3fa6cb6d:8846f7eaee8fb117
 contoso.local\Computer00008$:8:fbcb18c544e62c1eaad3b435b51404ee:3f11d25111e753fb54cb157f511dcd5c:::
 contoso.local\Computer00009$:9:7a75cb417336dfd9aad3b435b51404ee:7eed6ab0c72a7b84c8fd9637e3011c4c:::
 contoso.local\Computer00010$:10:807cda06ad520210aad3b435b51404ee:f09ab1733a528f430353834152c8a90e:::
+contoso.local\präsentation:6265:aad3b435b51404eeaad3b435b51404ee:fd2f5097335ef5aef16520274f4dc322:::

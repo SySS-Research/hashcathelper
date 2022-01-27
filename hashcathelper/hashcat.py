@@ -97,7 +97,8 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
         output_file_cleaned = tempfile.NamedTemporaryFile(
             delete=False, dir=directory, mode='w', suffix='pwonly',
         )
-        with open(output_file.name, 'r') as fp:
+        with open(output_file.name, 'r',
+                  encoding='utf-8', error='replace') as fp:
             for line in fp.readlines():
                 u = User(line)
                 output_file_cleaned.write(u.password + '\n')

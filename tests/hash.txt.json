@@ -1,28 +1,28 @@
 {
   "statistics": {
     "key_quantities": {
-      "total_accounts": 1326,
+      "total_accounts": 1327,
       "removed": 15,
       "user_equals_password": [
         1,
         1012
       ],
-      "accounts": 1311,
+      "accounts": 1312,
       "cracked": [
         1012,
-        1311
+        1312
       ],
       "lm_hash_count": [
         17,
-        1311
+        1312
       ],
       "nonunique": [
         994,
-        1311
+        1312
       ],
       "empty_password": [
         134,
-        1311
+        1312
       ],
       "average_password_length": 5.5,
       "median_password_length": 6.0,

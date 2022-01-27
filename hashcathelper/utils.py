@@ -130,7 +130,7 @@ class User(object):
             m = HEX_PATTERN.search(self.password)
             if m:
                 bin_p = binascii.unhexlify(m.group('hexascii'))
-                self.password = bin_p.decode(errors='ignore')
+                self.password = bin_p.decode(errors='replace')
 
     def is_disabled(self):
         if self.comment and 'status=Disabled' in self.comment:
