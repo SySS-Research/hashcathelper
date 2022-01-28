@@ -112,7 +112,7 @@ def load_lines(path, as_user=True):
         return []
 
     result = []
-    with open(path, 'r', encoding="utf-8", errors="replace") as f:
+    with open(path, 'r', encoding="utf-8", errors="backslashreplace") as f:
         for i, line in enumerate(f.readlines()):
             if as_user:
                 try:
