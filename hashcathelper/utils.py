@@ -116,12 +116,6 @@ class User(object):
         else:
             self.full_username = self.username
 
-        # It appears that hashcat thinks the following results in an NT hash
-        # that equals the "empty" NT hash.
-        # Not sure why this happens, but we'll fix it here
-        if self.password == '$HEX[e0e09f9fb8b830303430373039353539e0b89fe0b8b3]':  # noqa
-            self.password = ''
-
         # Let's also try to convert other HEX passwords.
         # Hashcat appears to insert spurious non-printable characters
         # sometimes. Passwords must be printable so doing the following will
