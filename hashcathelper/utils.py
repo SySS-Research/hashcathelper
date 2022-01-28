@@ -116,7 +116,7 @@ class User(object):
         else:
             self.full_username = self.username
 
-        # Let's also try to convert other HEX passwords.
+        # Let's also try to convert HEX passwords.
         # Hashcat appears to insert spurious non-printable characters
         # sometimes. Passwords must be printable so doing the following will
         # probably lead to less errors compared to not doing it.
