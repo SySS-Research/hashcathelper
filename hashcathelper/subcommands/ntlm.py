@@ -28,6 +28,13 @@ args.append(argument(
     help="Do not crack LM hashes first",
 ))
 
+args.append(argument(
+    '-K', '--keep-tempdir',
+    default=False,
+    action='store_true',
+    help="Do not delete the tempdir at the end",
+))
+
 
 @subcommand(args)
 def ntlm(args):
@@ -58,8 +65,9 @@ def ntlm(args):
         result = decompile_file(password_file, args.hashfile, args.suffix)
         result = ', '.join(result)
     log.info("Success! Output is in: %s" % result)
-    log.info("Deleting temporary directory...")
-    shutil.rmtree(TEMP_DIR)
+    if not args.keep_tempdir:
+        log.info("Deleting temporary directory...")
+        shutil.rmtree(TEMP_DIR)
     log.info("Done.")
 
 

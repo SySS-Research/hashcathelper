@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add parameter to change the minimum password length in the context of
   identifying short passwords
 - Include optional lookup in HIBP database in the detailed report
+- Add parameter `--keep-tempdir`
 
 ## [0.1.3] - 2021-11-12
 
