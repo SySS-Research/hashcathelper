@@ -18,7 +18,7 @@ def get_nthash(password):
 
     result = hashlib.new(
         'md4',
-        password.decode(errors="replace").encode('utf-16le'),
+        password.decode(errors="ignore").encode('utf-16le'),
     ).digest()
     return binascii.hexlify(result)
 
@@ -124,7 +124,7 @@ class User(object):
             m = HEX_PATTERN.search(self.password)
             if m:
                 bin_p = binascii.unhexlify(m.group('hexascii'))
-                self.password = bin_p.decode(errors='backslashreplace')
+                self.password = bin_p.decode(errors='ignore')
 
     def is_disabled(self):
         if self.comment and 'status=Disabled' in self.comment:

@@ -98,7 +98,7 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
             delete=False, dir=directory, mode='w', suffix='pwonly',
         )
         with open(output_file.name, 'r',
-                  encoding='utf-8', error='replace') as fp:
+                  encoding='utf-8', errors='ignore') as fp:
             for line in fp.readlines():
                 u = User(line)
                 output_file_cleaned.write(u.password + '\n')
