@@ -94,7 +94,7 @@ def analytics(args):
         out = report.export(args.format)
 
         if args.outfile:
-            with open(args.outfile, 'w') as f:
+            with open(args.outfile, 'w', errors='replace') as f:
                 f.write(out)
         else:
             print(out, end='')
