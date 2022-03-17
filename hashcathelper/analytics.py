@@ -136,7 +136,7 @@ def do_sanity_check(hashes, accounts_plus_passwords, passwords,
     """Make sure the right combination of files was passed"""
     if not (hashes or accounts_plus_passwords or passwords):
         log.error("No files specified, nothing to do")
-        return {}
+        exit(1)
 
     if passwords and accounts_plus_passwords:
         log.warning(
