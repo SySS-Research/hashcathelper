@@ -66,6 +66,9 @@ def expand_DES_key(key):
 
 USER_REGEX = r'^((?P<upn_suffix>[A-Za-z0-9_\.-]+)\\)?(?P<username>[^:]+)'
 USER_PATTERN = re.compile(USER_REGEX + '$')
+USER_PATTERN_SUFFIX = re.compile(
+    r'^(?P<username>[^@]+)@(?P<upn_suffix>[A-Za-z0-9_\.-]+)$'
+)
 USER_PASS_PATTERN = re.compile(USER_REGEX + r':(?P<password>.*)$')
 PWDUMP_PATTERN = re.compile(
     USER_REGEX +
@@ -83,9 +86,11 @@ class User(object):
 
     def __init__(self, line):
         self.line = line
+        # Try to pass one pattern after another
         for p in [
             PWDUMP_PATTERN,
             USER_PASS_PATTERN,
+            USER_PATTERN_SUFFIX,
             USER_PATTERN,
         ]:
             m = p.search(line)
