@@ -152,6 +152,9 @@ class User(object):
     def __str__(self):
         return self.full_username
 
+    def __repr__(self):
+        return '<User: %s>' % str(self)
+
 
 def line_binary_search(filename, matchvalue, key=lambda val: val, start=0):
     """
