@@ -149,6 +149,9 @@ class User(object):
                             type(b).__name__)
         return self.username.lower() == b.lower()
 
+    def __hash__(self):
+        return hash(self.username.lower())
+
     def __str__(self):
         return self.full_username
 
