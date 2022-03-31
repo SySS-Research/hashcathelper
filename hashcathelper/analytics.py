@@ -219,19 +219,19 @@ def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
 
     `table` must be a suitable dictionary, the other args lists of `User()`.
     """
-    # TODO performance is poor; improve
-
+    remove_set = set(remove)
+    keep_set = set(keep_only)
     # Remove entries from first list
     if accounts_plus_passwords:
         before = len(accounts_plus_passwords)
         accounts_plus_passwords = [
             u for u in accounts_plus_passwords
-            if u not in remove
+            if u not in remove_set
         ]
         if keep_only:
             accounts_plus_passwords = [
                 u for u in accounts_plus_passwords
-                if u in keep_only
+                if u in keep_set
             ]
         after = len(accounts_plus_passwords)
         table['total_accounts'] = before
@@ -242,11 +242,11 @@ def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
         before = len(hashes)
         hashes = [
             u for u in hashes
-            if u not in remove
+            if u not in remove_set
         ]
         if keep_only:
             hashes = [u for u in hashes
-                      if u in keep_only]
+                      if u in keep_set]
         after = len(hashes)
         table['total_accounts'] = before
         table['removed'] = before - after

@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Include optional lookup in HIBP database in the detailed report
 - Add parameter `--keep-tempdir`
 
+### Changed
+
+- Performance improvement when creating the report
+
 ## [0.1.3] - 2021-11-12
 
 ### Added
