@@ -23,11 +23,9 @@ setuptools.setup(
         'sqlalchemy',
         'tabulate',
         'openpyxl',
-        'importlib-metadata<=2.1.1',
-        # https://github.com/pypa/virtualenv/issues/2059
-        # import_lib dropped support for py3.5 after 2.1.1
+        'importlib-metadata',
     ],
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     tests_require=[
         'pytest',
         'tox',

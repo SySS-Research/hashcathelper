@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Performance improvement when creating the report
+- Require Python 3.6 or greater
 
 ## [0.1.3] - 2021-11-12
 
