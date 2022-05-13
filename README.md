@@ -91,7 +91,14 @@ To be done; stay tuned.
 Installation
 ------------
 
-`python3 setup.py install --user`
+The recommended way is to install it like this:
+
+`$ pip install .`
+
+As with any Python package, you can execute it directly without installation
+like this if the current working directory is the root of this repository:
+
+`$ python3 -m hashcathelper`
 
 Notes
 -----
