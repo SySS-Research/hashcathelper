@@ -289,9 +289,24 @@ def get_hibp(hashes, hibp_db):
 
 
 def create_report(hashes=None, accounts_plus_passwords=None,
-                  passwords=None, filter_accounts=None, pw_min_length=6,
+                  passwords=None, filter_accounts=[], pw_min_length=6,
                   degree_of_detail=1, include_disabled=False,
                   include_computer_accounts=False, hibp_db=None):
+    """Create the report on password statistics
+
+    Arguments:
+        hashes: path to the output file from secretsdump or similar
+        accounts_plus_passwords: path to the output file of hashcat with
+            user names
+        passwords: path to a file containing only passwords (one per line)
+        filter_accounts: list of `User` objects, which will be the only ones
+            considered
+        pw_min_length: definition of a password that is 'too short'
+        degree_of_detail (int): amount of detail to include
+        include_disabled: don't remove disabled accounts
+        include_computer_accounts: don't remove computer accounts
+        hibp_db: path to the HIBP database (sorted by NT hash)
+    """
     log.info("Creating report...")
     table = Table('key_quantities', collections.OrderedDict())
 
@@ -313,7 +328,6 @@ def create_report(hashes=None, accounts_plus_passwords=None,
     hashes = load_lines(hashes)
     accounts_plus_passwords = load_lines(accounts_plus_passwords)
     passwords = load_lines(passwords, as_user=False)
-    filter_accounts = load_lines(filter_accounts)
 
     # Remove computer accounts and accounts marked by hashcat as 'disabled'
     disabled = []
@@ -328,7 +342,8 @@ def create_report(hashes=None, accounts_plus_passwords=None,
     # Filter accounts
     log.debug("Filter accounts")
     if filter_accounts:
-        log.info("Only taking specified accounts into consideration")
+        log.info("Removing all accounts which are not in filter (%d)" %
+                 len(filter_accounts))
     if disabled:
         log.info("Removing %d accounts which have been marked as disabled"
                  % len(disabled))
@@ -371,6 +386,8 @@ def create_report(hashes=None, accounts_plus_passwords=None,
                                                                     passwords)
         if not hashes:
             clusters = cluster_analysis(table, passwords, empty='')
+    else:
+        password_length_count, char_class_count = None, None
 
     result = Report("report")
     result += meta
@@ -379,8 +396,10 @@ def create_report(hashes=None, accounts_plus_passwords=None,
         statistics = Section("statistics")
         statistics += table
         statistics += clusters
-        statistics += password_length_count
-        statistics += char_class_count
+        if password_length_count:
+            statistics += password_length_count
+        if char_class_count:
+            statistics += char_class_count
         result += statistics
 
     if degree_of_detail > 1:

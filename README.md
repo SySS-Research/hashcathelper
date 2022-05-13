@@ -56,6 +56,10 @@ regarding active accounts and did not use `secretsdump -user-status`, for
 example. Or you want the statistics regarding all accounts with `admin` in
 their name. Or statistics regarding kerberoastable users.
 
+In addition to a filter file, you can also pass a Cypher query (some are
+predefined) and the appropriate credentials to use information from a
+BloodHound database.
+
 Example:
 
 ```
@@ -82,6 +86,13 @@ passwords could be cracked, which puts you in the bottom 20th percentile.
 
 Use `hashcathelper db submit <filename>` to submit a result and `hashcathelper db
 stats <id>` to view statistics for one entry.
+
+### Subcommand "bloodhound"
+
+This subcommand lets you insert new relationships into an existing
+[BloodHound](https://github.com/BloodHoundAD/BloodHound) database. It takes
+a BloodHound URI, a report in JSON format and the domain name and creates
+edges between user objects that share the same password.
 
 ### Subcommand "autocrack"
 

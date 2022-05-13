@@ -23,6 +23,7 @@ setuptools.setup(
         'sqlalchemy',
         'tabulate',
         'openpyxl',
+        'neo4j',
         'importlib-metadata',
     ],
     python_requires='>=3.6',

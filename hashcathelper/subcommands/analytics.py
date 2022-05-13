@@ -1,6 +1,7 @@
 import logging
 
 from hashcathelper.args import subcommand, argument, parse_config
+from hashcathelper.bloodhound import CYPHER_QUERIES
 
 log = logging.getLogger(__name__)
 args = []
@@ -38,6 +39,33 @@ case insensitive.
 ))
 
 args.append(argument(
+    '-B', '--bloodhound-filter',
+    default=None,
+    help="""
+cypher query to match accounts which are subject to analysis. Requires
+`--bloodhound-url` to be set. If your BloodHound database contains multiple
+domains, you should set `--bloodhound-domain` as well. This parameter can
+take the following values to execute a pre-defined cypher query (enabled
+accounts only): """ + ', '.join(CYPHER_QUERIES.keys())
+))
+
+args.append(argument(
+    '-D', '--bloodhound-domain',
+    default=None,
+    help="""specify the domain in BloodHound related actions
+(`--bloodhound-filter`)"""
+))
+
+args.append(argument(
+    '-U', '--bloodhound-url',
+    default=None,
+    help="""
+URL to a Neo4j database containing BloodHound data. Format:
+bolt://<user>:<password>@<host>:<port>"""
+))
+
+
+args.append(argument(
     '-f', '--format',
     choices=['text', 'json', 'html', 'xlsx'],
     default='text',
@@ -70,14 +98,30 @@ args.append(argument(
 @subcommand(args)
 def analytics(args):
     '''Output interesting statistics'''
-    from hashcathelper.analytics import create_report
+    from hashcathelper.analytics import create_report, load_lines
+    from hashcathelper.bloodhound import get_driver, query_neo4j
+
+    if args.filter_accounts:
+        filter_accounts = load_lines(args.filter_accounts)
+    else:
+        filter_accounts = []
+
+    if args.bloodhound_filter:
+        driver = get_driver(args.bloodhound_url)
+        bh_users = query_neo4j(
+            driver,
+            args.bloodhound_filter,
+            domain=args.bloodhound_domain,
+        )
+    else:
+        bh_users = []
 
     config = parse_config(args.config)
     report = create_report(
         args.hashes,
         args.accounts_plus_passwords,
         args.passwords_only,
-        args.filter_accounts,
+        filter_accounts + bh_users,
         degree_of_detail=args.degree_of_detail,
         pw_min_length=args.pw_min_length,
         hibp_db=config.hibp_db,

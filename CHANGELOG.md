@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   identifying short passwords
 - Include optional lookup in HIBP database in the detailed report
 - Add parameter `--keep-tempdir`
+- Add interactions with BloodHound: as a filter (#11) and adding
+  "SamePassword" edges (#7)
 
 ### Changed
 
