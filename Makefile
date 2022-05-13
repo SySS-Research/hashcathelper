@@ -12,7 +12,9 @@ deploy: hashcathelper.pyz
 
 hashcathelper.pyz: hashcathelper/
 	@$(eval TEMP_DIR := $(shell mktemp -d --suffix=.hashcathelper))
+	@$(eval GIT_HASH := $(shell git rev-parse --short HEAD))
 	python3 -m pip install . --upgrade --target "${TEMP_DIR}"
+	@sed -i -E "s/'([0-9.]*)'/'\1-$(GIT_HASH)'/" ${TEMP_DIR}/hashcathelper/_meta.py
 	@python3 -m zipapp "${TEMP_DIR}" -m hashcathelper.__main__:main -p '/usr/bin/env python3' --output hashcathelper.pyz
 	@rm -rf "${TEMP_DIR}"
 
