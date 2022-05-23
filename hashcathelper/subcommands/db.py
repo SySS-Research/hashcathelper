@@ -267,6 +267,10 @@ def stats(args):
     total_entries = len(all_entries)
     total_accounts = sum(e.accounts for e in all_entries)
 
+    if total_entries == 0:
+        log.critical("Database is empty")
+        exit(1)
+
     result = get_stats(r, all_entries)
 
     if args.format in ['text', 'html']:

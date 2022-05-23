@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Require Python 3.6 or greater
 - Use MD4 implementation in pure Python because the openssl provider for
   `hashlib` may not support legacy algorithms
+- Improve error handling
 
 ## [0.1.3] - 2021-11-12
 
