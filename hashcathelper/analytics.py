@@ -464,7 +464,7 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
     # Replace hashes with passwords where possible
     # Build dict of nthash->password to avoid n^2 loop
     hash_map = {
-        get_nthash(u.password.encode()).decode(): u.password
+        get_nthash(u.password.encode()): u.password
         for u in accounts_plus_passwords
     }
 

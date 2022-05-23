@@ -13,14 +13,11 @@ def prcnt(a, b=None):
 
 def get_nthash(password):
     """Compute NT hash of password (must be bytes)"""
-    import hashlib
-    import binascii
-
-    result = hashlib.new(
-        'md4',
-        password.decode(errors="ignore").encode('utf-16le'),
-    ).digest()
-    return binascii.hexlify(result)
+    from hashcathelper import md4
+    password = password.decode(errors="ignore").encode('utf-16le')
+    result = md4.MD4(password)
+    result = result.hexdigest()
+    return result
 
 
 def get_lmhash(password):

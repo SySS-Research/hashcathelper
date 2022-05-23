@@ -158,7 +158,7 @@ def decompile_file(password_file, hashfiles, suffix):
                 #  Didn't get a unique result, so hash the password and try
                 #  now to see which original file it was
                 pw = b':'.join(line.split(b':')[1:])
-                nthash = get_nthash(pw)
+                nthash = get_nthash(pw).encode()
                 candidates = [fp for fp, names in hashes.items()
                               if b':'.join([username, nthash]) in names]
                 for fp in candidates:

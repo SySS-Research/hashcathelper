@@ -61,7 +61,7 @@ def create_pwdump(WORDS,
             lm_hash = get_lmhash(pw).decode()
         else:
             lm_hash = LM_EMPTY
-        nt_hash = get_nthash(pw.encode()).decode()
+        nt_hash = get_nthash(pw.encode())
         username = '%s\\User%05d' % (domain, i)
         pw_dump.append(
             '%s:%d:%s:%s:::' % (
@@ -72,7 +72,7 @@ def create_pwdump(WORDS,
     for i in range(user_eq_pass):
         user = "User%05d" % len(pw_dump)
         username = "%s\\%s" % (domain, user)
-        nt_hash = get_nthash(user.encode()).decode()
+        nt_hash = get_nthash(user.encode())
         pw_dump.append(
             '%s:%d:%s:%s:::' % (
                 username, i, LM_EMPTY, nt_hash
