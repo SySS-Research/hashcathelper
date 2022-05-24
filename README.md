@@ -52,7 +52,7 @@ in the pwdump file (like `secretsdump -user-status` does) will be disregarded.
 Additionally, you can pass the path to a file containing account names to be
 used as a filter. Only the accounts whose names are listed in this file will
 be considered. This is useful if you are only interested in statistics
-regarding active accounts and did not use `secretsdump -user-status`, for
+regarding active accounts and did not use `secretsdump.py -user-status`, for
 example. Or you want the statistics regarding all accounts with `admin` in
 their name. Or statistics regarding kerberoastable users.
 
@@ -171,11 +171,12 @@ better than X% of all other results", so higher is better.
 
 ### UPN Suffix
 
-The output from hashcat contains lines that start with the account name. The
+The output from secretsdump contains lines that start with the account name. The
 format looks like `<domain>\<account name>`, however, that is not the
-domain. It is the UPN suffix and is entirely independent of the domain name.
-Especially after migrating an account from domain A to domain B, the UPN
-suffix will not change, but the domain name obviously will.
+domain. It is the UPN suffix and can be entirely independent of the domain
+name -- it just coincides with the domain name by default. Especially after
+migrating an account from domain A to domain B, the UPN suffix will not
+change, but the domain name obviously will.
 
 Hashcathelper ignores the UPN suffix pretty much everywhere. All accounts in
 one file are assumed to belong to the same domain. And that is actually the
