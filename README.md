@@ -1,7 +1,7 @@
 hashcathelper
 =============
 
-Convience tool for hashcat.
+Convenience tool for hashcat.
 
 Usage
 -----
