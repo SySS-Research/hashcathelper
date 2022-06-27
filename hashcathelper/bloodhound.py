@@ -75,21 +75,25 @@ def query_neo4j(driver, cypher_query, domain=None):
 
 
 def add_edges(driver, clusters, domain):
-    from itertools import permutations
-
     rel_count = 0
     log.info("Processing %d clusters..." % len(clusters))
     with driver.session() as session:
         for cluster in clusters:
-            # Use permutations instead of combinations because neo4j doesn't
-            # know bidirectional relationships
-            for node_a, node_b in permutations(cluster, r=2):
-                if node_a == node_b:
-                    continue
+            # Only create clusters instead of cliques. In cliques, the
+            # number of edges grows as n^2, which can become overwhelming
+            # and doesn't add much value.
+            if len(cluster) <= 1:
+                continue
+            node_a = cluster[0]
+            for node_b in cluster[1:]:
                 try:
                     session.write_transaction(
                         add_single_edge,
                         node_a, node_b, domain
+                    )
+                    session.write_transaction(
+                        add_single_edge,
+                        node_b, node_a, domain
                     )
                     rel_count += 1
                 except Exception as e:
