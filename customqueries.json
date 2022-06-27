@@ -1,0 +1,43 @@
+{
+    "queries": [
+        {
+            "name": "Show SamePassword clusters",
+            "category": "Hashcathelper",
+            "queryList": [
+                {
+                    "final": true,
+                    "query":"MATCH p=((a:User)-[:SamePassword*1..2]-(b:User)) WHERE a<>b return p",
+                    "allowCollapse": true
+                }
+            ]
+        },
+        {
+            "name": "Show SamePassword cluster for specific user",
+            "category": "Hashcathelper",
+            "queryList": [
+                {
+                    "final": false,
+                    "title": "Select user...",
+                    "query":
+                        "MATCH (n:User) RETURN n.name ORDER BY n.name ASC"
+                },
+                {
+                    "final": true,
+                    "query":"MATCH p=((a:User {name: $result})-[:SamePassword*1..2]-(b:User)) WHERE a<>b return p",
+                    "allowCollapse": true
+                }
+            ]
+        },
+        {
+            "name": "Show SamePassword clusters of admins (adjust the regex in the Raw Query - needs Query Debug Mode)",
+            "category": "Hashcathelper",
+            "queryList": [
+                {
+                    "final": true,
+                    "query":"MATCH p=((a:User)-[:SamePassword*1..2]-(b:User)) WHERE a.name =~ '(?i)adm_.*' return p",
+                    "allowCollapse": true
+                }
+            ]
+        }
+    ]
+}
