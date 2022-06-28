@@ -201,9 +201,6 @@ rule = /home/cracker/hashcat/rules/OneRule.rule
 # Path to hashcat wordlist (Crackstation is recommended)
 wordlist = /home/cracker/wordlists/crackstation.txt
 
-# Hash speed of the machine
-hash_speed = 60000
-
 # URI to database
 db_uri = sqlite:////home/cracker/.local/share/hashcathelper/stats.sqlite
 
@@ -213,7 +210,3 @@ db_uri = sqlite:////home/cracker/.local/share/hashcathelper/stats.sqlite
 hibp_db = /home/cracker/wordlists/pwned-passwords-ntlm-ordered-by-hash-v8.txt
 ```
 
-The hash speed characterizes the power of the machine. Unit: MH/s
-(Megahashes per second for MD5).
-
-It can be measured with `hashcat -b -m 0`.
