@@ -419,7 +419,25 @@ def create_report(hashes=None, accounts_plus_passwords=None,
         )
         result += details
 
+    if degree_of_detail > 3:
+        # Add all known credentials
+        creds = gather_creds(
+            hashes,
+            accounts_plus_passwords,
+        )
+        result += creds
+
     return result
+
+
+def gather_creds(hashes, accounts_plus_passwords):
+    """Return a dictionary with credentials"""
+    creds = LongTable(
+        'full_creds',
+        dict(sorted({u.username: [u.password] for u in
+                     accounts_plus_passwords}.items())),
+    )
+    return creds
 
 
 def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
