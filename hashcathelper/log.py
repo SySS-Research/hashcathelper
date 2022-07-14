@@ -1,9 +1,9 @@
 import logging
 
-grey = "\x1b[38;21m"
-yellow = "\x1b[33;21m"
-green = "\x1b[32;21m"
-red = "\x1b[31;21m"
+grey = "\x1b[38m"
+yellow = "\x1b[33m"
+green = "\x1b[32m"
+red = "\x1b[31m"
 bold_red = "\x1b[31;1m"
 reset = "\x1b[0m"
 
