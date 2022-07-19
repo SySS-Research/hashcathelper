@@ -41,7 +41,7 @@ install:
 
 # \n in sed only works in GNU sed
 release:
-	@read -p "Enter version string: " version; \
+	@read -p "Enter version string (Format: x.y.z): " version; \
     echo "Version Bump: $$version"; \
 	date=$$(date +%F); \
 	sed -i "s/^__version__ = '.*'/__version__ = '$$version'/" hashcathelper/_meta.py && \
