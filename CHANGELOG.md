@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A list of all found credentials can be included in the report with degree
   of detail >= 4
+- Support for encryption option in connections to the neo4j database
 
 ## [0.1.4] - 2022-06-27
 
