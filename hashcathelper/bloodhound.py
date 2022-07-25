@@ -40,6 +40,9 @@ def get_driver(url):
     regex = r'^bolt(?P<encrypted>s?)://(?P<user>[^:]+):(?P<password>.+)@'
     regex += r'(?P<host>.*):(?P<port>[0-9]+)$'
     m = re.match(regex, url)
+    if not m:
+        log.error("Couldn't parse BloodHound URL: %s" % url)
+        exit(1)
 
     encrypted, user, password, host, port = m.groups()
     encrypted = (encrypted == 's')
