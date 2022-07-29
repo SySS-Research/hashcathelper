@@ -155,6 +155,10 @@ class User(object):
     def __repr__(self):
         return '<User: %s>' % str(self)
 
+    def as_json(self):
+        # needed so this can be serialized by the reporting module
+        return str(self)
+
 
 def line_binary_search(filename, matchvalue, key=lambda val: val, start=0):
     """
