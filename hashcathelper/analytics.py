@@ -174,15 +174,12 @@ def analyze_passwords(table, passwords):
     return password_length_count, char_class_count
 
 
-def count_user_equal_password(table, accounts_plus_passwords):
+def count_user_equal_password(table, accounts_plus_passwords, total):
     count = 0
     for u in accounts_plus_passwords:
         if u == u.password:
             count += 1
-    table['user_equals_password'] = RelativeQuantity(
-        count,
-        len(accounts_plus_passwords),
-    )
+    table['user_equals_password'] = RelativeQuantity(count, total)
 
 
 def analyze_hashes(table, hashes, passwords):
@@ -366,7 +363,8 @@ def create_report(hashes=None, accounts_plus_passwords=None,
 
     # Count accounts where user==password
     if accounts_plus_passwords:
-        count_user_equal_password(table, accounts_plus_passwords)
+        count_user_equal_password(table, accounts_plus_passwords,
+                                  len(hashes))
 
     # Remove account names now that they are filtered
     if not passwords and accounts_plus_passwords:

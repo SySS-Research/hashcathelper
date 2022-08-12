@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of detail >= 4
 - Support for encryption option in connections to the neo4j database
 
+### Fixed
+
+- Percentage of 'user = password' was relative to cracked passwords, not all
+  accounts
+
 ## [0.1.4] - 2022-06-27
 
 ### Added
