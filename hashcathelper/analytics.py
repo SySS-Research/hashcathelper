@@ -210,9 +210,9 @@ def analyze_hashes(table, hashes, passwords):
 
 def remove_accounts(table, accounts_plus_passwords, hashes, remove=[],
                     keep_only=[]):
-    """Remove all lines from `hashes` and `accounts_plus_passwords` which have a
-    username which is either specified in `remove` or not specified in
-    `keep_only` (if `keep_only` is non-empty).
+    """Remove all lines from `hashes` and `accounts_plus_passwords` which
+    have a username which is either specified in `remove` or not specified
+    in `keep_only` (if `keep_only` is non-empty).
 
     Accounts are assumed to be case-insensitive. The UPN suffix (e.g. the
     domain name) is ignored if there is one.
