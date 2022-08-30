@@ -96,7 +96,7 @@ edges between user objects that share the same password. This enables you to
 create graphs like this, which immediately shows you offenders of password
 reuse among the administrator team:
 
-![Bloodhound showing clusters of tiered accounts](doc/bloodound_clusters.png)
+![Bloodhound showing clusters of tiered accounts](doc/bloodhound_clusters.png)
 
 This picture is the result of a query like this:
 
