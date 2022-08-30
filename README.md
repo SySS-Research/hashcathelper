@@ -92,7 +92,24 @@ stats <id>` to view statistics for one entry.
 This subcommand lets you insert new relationships into an existing
 [BloodHound](https://github.com/BloodHoundAD/BloodHound) database. It takes
 a BloodHound URI, a report in JSON format and the domain name and creates
-edges between user objects that share the same password.
+edges between user objects that share the same password. This enables you to
+create graphs like this, which immediately shows you offenders of password
+reuse among the administrator team:
+
+![Bloodhound showing clusters of tiered accounts](doc/bloodound_clusters.png)
+
+This picture is the result of a query like this:
+
+```
+MATCH p=((a:User)-[r:SamePassword*1..2]-(b:User))
+WHERE ALL(x in r WHERE STARTNODE(x).objectid > ENDNODE(x).objectid)
+AND (a.admincount OR a.name =~ '(?i)adm_.*')
+RETURN p
+```
+
+It might need some manual modification depending on the particular naming
+scheme for admin accounts. See `customqueries.json` for more queries. You
+can add these to `~/.config/bloodhound/customqueries.json`.
 
 ### Subcommand "autocrack"
 
