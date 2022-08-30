@@ -198,7 +198,8 @@ change, but the domain name obviously will.
 Hashcathelper ignores the UPN suffix pretty much everywhere. All accounts in
 one file are assumed to belong to the same domain. And that is actually the
 case if the file has been created by using secretsdump on a domain
-controller.
+controller -- unless you used the `-use-vss` flag, then there is a chance
+you might encounter duplicate entries.
 
 ### Config
 
