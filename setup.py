@@ -26,6 +26,9 @@ setuptools.setup(
         'neo4j>=4.2',
         'importlib-metadata',
     ],
+    extras_require={
+        'postgres': ['psycopg2'],
+    },
     python_requires='>=3.6',
     tests_require=[
         'pytest',
