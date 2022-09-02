@@ -19,7 +19,6 @@ setuptools.setup(
     },
     install_requires=[
         'pyxdg',
-        'pycryptodome',
         'sqlalchemy',
         'tabulate',
         'openpyxl',
@@ -34,6 +33,7 @@ setuptools.setup(
         'pytest',
         'tox',
         'flake8',
+        'pycryptodome',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
