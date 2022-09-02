@@ -497,7 +497,11 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
     details += user_similarto_password
     details += short_password
     if hibp_db:
-        details += get_hibp(hashes, hibp_db)
+        try:
+            details += get_hibp(hashes, hibp_db)
+        except FileNotFoundError:
+            log.error("Could not include HIBP stats; file not found: %s" %
+                      hibp_db)
     else:
         log.error("No HIBP database defined; skipping this detail")
     return details
