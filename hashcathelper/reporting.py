@@ -276,7 +276,7 @@ width="100%%" height="120">
         y = 0
         for k, v in self._data.items():
             if k == '':
-                k = '&lt;BLANK&gt;'
+                k = '<BLANK>'
             width_px = int(self.html_width * v/maxval)
             row = dict(
                 text=htmlescape(str(k)),
