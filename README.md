@@ -80,10 +80,11 @@ different degrees of detail:
 ### Subcommand "db"
 
 Use this subcommand to interact with the database.
-Results from the `analytics` subcommand can be submitted and
-collected in a database. This enables us to view statistics for each entry,
-for example how they compare to other customers. We can now say: 57% of all
-passwords could be cracked, which puts you in the bottom 20th percentile.
+Results from the `analytics` subcommand can be submitted and collected in a
+database. This enables us to view statistics for each entry, for example how
+they compare to other customers. We can now make statements like this: 57%
+of all passwords could be cracked, which puts you in the bottom 20th
+percentile.
 
 Use `hashcathelper db submit <filename>` to submit a result and `hashcathelper db
 stats <id>` to view statistics for one entry.
@@ -111,6 +112,10 @@ RETURN p
 It might need some manual modification depending on the particular naming
 scheme for admin accounts. See `customqueries.json` for more queries. You
 can add these to `~/.config/bloodhound/customqueries.json`.
+
+Note that you can create reports with the `analytics` subcommand without
+having to actually crack anything; a JSON report can be created from just
+the hashes, which already enables us to see password reuse.
 
 ### Subcommand "autocrack"
 
@@ -155,7 +160,7 @@ Then, reports can be generated:
 $ hashcathelper analytics -H hashes.txt -A hashes.txt.out -f json -o hashes.json
 ```
 
-If secretsdump was run with `-user-status`, inactive accounts are
+If secretsdump was run with `-user-status`, deactivated accounts are
 automatically disregarded. Computer accounts (those that end on `$`) are
 also disregarded. You can restrict analysis to a group of accounts by
 passing another file with `-F`. That file needs to contain one account name
