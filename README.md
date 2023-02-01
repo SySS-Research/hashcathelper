@@ -117,6 +117,12 @@ Note that you can create reports with the `analytics` subcommand without
 having to actually crack anything; a JSON report can be created from just
 the hashes, which already enables us to see password reuse.
 
+Also, not all edges of a cluster are inserted, because the numbers of actual
+edges grows very quickly. Instead, one member of a cluster is chosen as the
+"center" and all other members have edges to this one member. So the
+property may not look transitive in BloodHound even though it is. Keep this
+in mind.
+
 ### Subcommand "autocrack"
 
 To be done; stay tuned.
