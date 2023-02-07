@@ -80,10 +80,12 @@ def query_neo4j(driver, cypher_query, domain=None):
 
 
 def add_edges(driver, clusters, domain):
+    from tqdm import tqdm
+
     rel_count = 0
     log.info("Processing %d clusters..." % len(clusters))
     with driver.session() as session:
-        for cluster in clusters:
+        for cluster in tqdm(clusters):
             # Only create clusters instead of cliques. In cliques, the
             # number of edges grows as n^2, which can become overwhelming
             # and doesn't add much value.

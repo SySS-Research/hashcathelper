@@ -24,6 +24,7 @@ setuptools.setup(
         'openpyxl',
         'neo4j>=4.2',
         'importlib-metadata',
+        'tqdm',
     ],
     extras_require={
         'postgres': ['psycopg2'],

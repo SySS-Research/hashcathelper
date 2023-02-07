@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Progress bar when creating BloodHound relationships
+
 ## [0.1.5] - 2022-08-30
 
 ### Added
