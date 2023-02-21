@@ -387,6 +387,8 @@ def create_report(hashes=None, accounts_plus_passwords=None,
     else:
         password_length_count, char_class_count = None, None
 
+    sort_table(table)
+
     result = Report("report")
     result += meta
 
@@ -526,6 +528,21 @@ def cluster_analysis(table, values, empty=''):
 
     table['empty_password'] = RelativeQuantity(counter[empty], total)
     return cluster_count
+
+
+def sort_table(table):
+    """Sort entries of table like the labels"""
+    from hashcathelper.consts import labels
+    result = collections.OrderedDict()
+    for k in labels.keys():
+        if k in table:
+            result[k] = table[k]
+            del table[k]
+    table_copy = collections.OrderedDict(table)
+    for k, v in table_copy.items():
+        result[k] = v
+        del table[k]
+    table.update(result)
 
 
 def create_short_report(

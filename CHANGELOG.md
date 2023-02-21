@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Progress bar when creating BloodHound relationships
 
+### Changed
+
+- Changed the order of the key quantities in the analytics report to a more
+  sensible one
+
 ## [0.1.5] - 2022-08-30
 
 ### Added
