@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Changed the order of the key quantities in the analytics report to a more
   sensible one
+- Sort clusters in details section of analytics report by size
 
 ## [0.1.5] - 2022-08-30
 

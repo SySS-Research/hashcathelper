@@ -490,6 +490,12 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
         if h in hash_map:
             clusters[hash_map[h]] = clusters[h]
             del clusters[h]
+
+    # Sort clusters by size
+    clusters = collections.OrderedDict(
+        sorted([(k, v) for k, v in clusters.items()], key=lambda x: -len(x[1]))
+    )
+
     clusters = LongTable('clusters', clusters)
 
     # Build section
