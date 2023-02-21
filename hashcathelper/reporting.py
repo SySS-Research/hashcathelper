@@ -9,8 +9,6 @@ except ImportError:
 
 from hashcathelper.consts import labels
 
-from tabulate import tabulate
-
 log = logging.getLogger(__name__)
 
 
@@ -111,6 +109,9 @@ class Section(Element):
 class Report(Section):
     CSS = """
       <style>
+        body {
+          font-family: Helvetica, Arial, Sans-Serif;
+        }
         .chart .label {
           text-anchor: end;
           font-family: monospace;
@@ -119,6 +120,49 @@ class Report(Section):
           text-anchor: begin;
           font-family: monospace;
         }
+        .card-collection {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 2em 0 2em;
+            align-items: stretch;
+        }
+        .card {
+            flex: 0 1 200px;
+            height: 15em;
+            box-sizing: border-box;
+            margin: 1rem .25em;
+            border: 1px solid;
+            border-color: lightgray;
+            align-content: center;
+        }
+        .card-label {
+            text-align: center;
+            padding: .25em;
+        }
+        .card-quantity {
+            height: 10em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        .pure-number {
+            display: table-cell;
+            vertical-align: middle;
+            font-size: 48pt;
+            padding: .25em;
+        }
+        .chart-text {
+            font-size: 12;
+            transform: translateY(0.1em);
+        }
+        .donut {
+            height: 100%;
+        }
+        .donut-segment {
+            stroke: #e28743;
+       }
       </style>
     """
 
@@ -183,19 +227,48 @@ class Table(OrderedDict, Element):
         Element.__init__(self, label, *args, **kwargs)
         self.update(data)
 
+    def _html_card(self, label, value):
+        """Return a card with a value
+
+        value can be int or `RelativeQuantity`
+        """
+
+        donut_section = """
+<svg viewBox="0 0 42 42" class="donut">
+  <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
+  <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#d2d3d4" stroke-width="3"></circle>
+  <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke-width="3"
+  stroke-dasharray="%(percent)d %(remaining)d" stroke-dashoffset="25"></circle>
+  <g class="chart-text">
+      <text x="50%%" y="50%%" class="donut-number">
+          %(center)s
+      </text>
+  </g>
+</svg>
+"""
+        if isinstance(value, RelativeQuantity):
+            # RelativeQuantity, draw a donut section
+            percent = int(value.numerator/value.denominator*100)
+            inner = donut_section % dict(
+                percent=percent,
+                remaining=100-percent,
+                center="%s%%" % percent,
+            )
+            quantity = '<div class="card-quantity">%s</div>' % inner
+        else:
+            quantity = '<div class="card-quantity"><div class="pure-number">%s</div></div>' % value
+
+        label = labels.get(label, label)
+        label = '<div class="card-label">%s</div>' % label
+        result = '<div class="card">%s%s</div>' % (quantity, label)
+
+        return result
+
     def _export_html(self):
         if not self:
             return ""
-        data = [[labels.get(k, k), str(v)] for k, v in self.items()]
-        result = tabulate(
-            data,
-            headers=self.headers,
-            tablefmt='html',
-        )
-        result = result.replace(
-            '<table>',
-            '<table><caption><b>%s<b></caption>' % htmlescape(self._title)
-        )
+        cards = [self._html_card(k, v) for k, v in self.items()]
+        result = '<div class="card-collection">%s</div>' % '\n'.join(cards)
         return result
 
     def _export_text(self):
@@ -266,7 +339,7 @@ width="100%%" height="120">
 <title>%(title)s</title>""" % dict(title=htmlescape(self._title))
         bar_template = """
 <g transform="translate(150,%(y)d)">
-  <rect width="%(width)d" height="19" fill="red"></rect>
+  <rect width="%(width)d" height="19" fill="#e28743"></rect>
   <text class="label" x="%(labelpos)d" y="9.5" dy=".35em">%(text)s</text>
   <text class="number" x="%(numberpos)d" y="9.5" dy=".35em">%(number)s</text>
 </g>
