@@ -144,6 +144,13 @@ args_query.append(argument(
 ))
 
 args_query.append(argument(
+    '-r', '--raw',
+    default=False,
+    action='store_true',
+    help="show raw database rows",
+))
+
+args_query.append(argument(
     '-o', '--outfile',
     default=None,
     help="path to an output file (default: stdout)",
@@ -163,12 +170,22 @@ def query(args):
         print(tabulate(list(data.items())))
     else:
         data = []
+
+        if args.raw:
+            headers = list(Report.__mapper__.c.keys())
+        else:
+            headers = "ID Submission E-Mail Accounts".split()
+
         for r in s.query(Report).order_by(Report.id.asc()).all():
-            data.append([r.id, r.submission_date.replace(microsecond=0),
-                         r.submitter_email, r.accounts])
+            if args.raw:
+                data.append(list(r.columns_to_dict().values()))
+            else:
+                data.append([r.id, r.submission_date.replace(microsecond=0),
+                             r.submitter_email, r.accounts])
+
         print(tabulate(
             data,
-            headers="ID Submission E-Mail Accounts".split(),
+            headers=headers,
         ))
 
 
