@@ -39,6 +39,20 @@ case insensitive.
 ))
 
 args.append(argument(
+    '--include-disabled',
+    default=False,
+    action='store_true',
+    help="don't exclude disabled accounts",
+))
+
+args.append(argument(
+    '--include-computer-accounts',
+    default=False,
+    action='store_true',
+    help="don't exclude computer accounts",
+))
+
+args.append(argument(
     '-B', '--bloodhound-filter',
     default=None,
     help="""
@@ -124,6 +138,8 @@ def analytics(args):
         filter_accounts + bh_users,
         degree_of_detail=args.degree_of_detail,
         pw_min_length=args.pw_min_length,
+        include_disabled=args.include_disabled,
+        include_computer_accounts=args.include_computer_accounts,
         hibp_db=config.hibp_db,
     )
 
