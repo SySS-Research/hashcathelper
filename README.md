@@ -93,10 +93,11 @@ stats <id>` to view statistics for one entry.
 
 This subcommand lets you insert new relationships into an existing
 [BloodHound](https://github.com/BloodHoundAD/BloodHound) database. It takes
-a BloodHound URI, a report in JSON format and the domain name and creates
-edges between user objects that share the same password. This enables you to
-create graphs like this, which immediately shows you offenders of password
-reuse among the administrator team:
+a BloodHound URI, a report in JSON format (with degree of detail equal to
+three or higher) and the domain name and creates edges between user objects
+that share the same password. This enables you to create graphs like this,
+which immediately shows you offenders of password reuse among the
+administrator team:
 
 ![Bloodhound showing clusters of tiered accounts](doc/bloodhound_clusters.png)
 
