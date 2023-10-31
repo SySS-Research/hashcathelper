@@ -106,7 +106,7 @@ This picture is the result of a query like this:
 ```
 MATCH p=((a:User)-[r:SamePassword*1..2]-(b:User))
 WHERE ALL(x in r WHERE STARTNODE(x).objectid > ENDNODE(x).objectid)
-AND (a.admincount OR a.name =~ '(?i)adm_.*')
+AND ANY(c in [a,b] WHERE c.admincount OR c.name =~ '(?i)adm_.*')
 RETURN p
 ```
 
