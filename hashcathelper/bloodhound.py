@@ -91,41 +91,26 @@ def add_edges(driver, clusters, domain):
             # and doesn't add much value.
             if len(cluster) <= 1:
                 continue
+            edges = []
             node_a = cluster[0]
             for node_b in cluster[1:]:
-                try:
-                    session.write_transaction(
-                        add_single_edge,
-                        node_a, node_b, domain
-                    )
-                    session.write_transaction(
-                        add_single_edge,
-                        node_b, node_a, domain
-                    )
-                    rel_count += 1
-                except Exception as e:
-                    log.error(
-                        "Error adding relationship %s -> %s: %s"
-                        % (node_a, node_b, str(e))
-                    )
+                edges.append({
+                    'a': '%s@%s' % (node_a, domain),
+                    'b': '%s@%s' % (node_b, domain),
+                    })
+            added = session.write_transaction(add_many_edges, edges)
+            rel_count += added
     log.info("Added %d relationships to BloodHound" % rel_count)
 
 
-def add_single_edge(tx, node_a, node_b, domain):
+def add_many_edges(tx, edges):
     q = """
+    UNWIND $edges as edge
     MATCH (a:User), (b:User)
-    WHERE a.name =~ '(?i)%(node_a)s@%(domain)s'
-    AND b.name =~ '(?i)%(node_b)s@%(domain)s'
-    CREATE (a)-[r:SamePassword]->(b)
-    RETURN type(r)
-    """ % dict(
-        node_a=node_a,
-        node_b=node_b,
-        domain=domain,
-    )
-
-    result = tx.run(q)
-    if len(result.value()) == 0:
-        raise KeyError(
-            "Node(s) not found: %s@%s, %s@%s"
-            % (node_a, domain, node_b, domain))
+    WHERE a.name = toUpper(edge.a)
+    AND b.name = toUpper(edge.b)
+    CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a)
+    RETURN r
+    """
+    result = tx.run(q, edges=edges)
+    return len(result.value())
