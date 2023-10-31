@@ -79,7 +79,7 @@ def query_neo4j(driver, cypher_query, domain=None):
     return result
 
 
-def add_edges(driver, clusters, domain):
+def add_edges(driver, clusters):
     from tqdm import tqdm
 
     rel_count = 0
@@ -95,8 +95,8 @@ def add_edges(driver, clusters, domain):
             node_a = cluster[0]
             for node_b in cluster[1:]:
                 edges.append({
-                    'a': '%s@%s' % (node_a, domain),
-                    'b': '%s@%s' % (node_b, domain),
+                    'a': node_a,
+                    'b': node_b,
                     })
             added = session.write_transaction(add_many_edges, edges)
             rel_count += added
