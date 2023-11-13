@@ -6,7 +6,7 @@
             "queryList": [
                 {
                     "final": true,
-                    "query":"MATCH p=((a:User)-[r:SamePassword*1..2]-(b:User)) WHERE STARTNODE(r).objectid > ENDNODE(r).objectid AND a<>b return p",
+                    "query":"MATCH p=((a:User)-[r:SamePassword*1..2]-(b:User)) WHERE ALL(x in r WHERE STARTNODE(x).objectid > ENDNODE(x).objectid) AND a<>b RETURN p",
                     "allowCollapse": true
                 }
             ]
@@ -23,7 +23,7 @@
                 },
                 {
                     "final": true,
-                    "query":"MATCH p=((a:User {name: $result})-[r:SamePassword*1..2]-(b:User)) WHERE STARTNODE(r).objectid > ENDNODE(r).objectid AND a<>b return p",
+                    "query":"MATCH p=((a:User {name: $result})-[r:SamePassword*1..2]-(b:User)) WHERE ALL(x in r WHERE STARTNODE(x).objectid > ENDNODE(x).objectid) AND a<>b RETURN p",
                     "allowCollapse": true
                 }
             ]
