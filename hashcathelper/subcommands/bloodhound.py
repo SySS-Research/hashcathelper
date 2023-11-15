@@ -86,7 +86,7 @@ def add_samepassword_relationships(args):
         log.info("Reading file: %s" % infile.name)
         data = json.load(infile)
         if 'details' not in data or 'clusters' not in data['details']:
-            log.critical("No information about clusters found in report file (did you use `--degree-of-detail 4`?")
+            log.critical("No information about clusters found in report file (did you use `--degree-of-detail 3`?)")
             exit(1)
 
         for password, usernames in data['details']['clusters'].items():
