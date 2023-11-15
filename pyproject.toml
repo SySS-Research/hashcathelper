@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "setuptools-git-versioning<2",]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hashcathelper"
+dynamic = ["version"]
+authors = [
+    {name = "Adrian Vollmer", email = "adrian.vollmer@syss.de"},
+]
+description = "Convenience tool for hashcat"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["hashcat", "passwords", "cracking", "bloodhound", "analytics", "pentest"]
+license = {text = "MIT License"}
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    'pyxdg',
+    'sqlalchemy',
+    'tabulate',
+    'openpyxl',
+    'neo4j>=4.2',
+    'importlib-metadata',
+    'tqdm',
+]
+
+[tool.setuptools]
+packages = ["hashcathelper"]
+
+[project.urls]
+"Homepage" = "https://github.com/SySS-Research/hashcathelper"
+"Bug Tracker" =  "https://github.com/SySS-Research/hashcathelper/issues"
+
+[project.scripts]
+hashcathelper = "hashcathelper.__main__:main"
+
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[project.optional-dependencies]
+postgres = ['psycopg2']
+tests = [
+  'pytest',
+  'flake8',
+  'beautifulsoup4',
+  'lxml',
+]
+dev = [
+  'tox',
+  'build',
+]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py,lint
+isolated_build = True
+
+[testenv:py]
+extras = tests
+commands = pytest -W ignore::DeprecationWarning -v {posargs} tests
+deps = .[tests]
+
+[testenv:lint]
+skip_install = true
+deps = .[tests]
+commands = flake8 hashcathelper tests
+"""

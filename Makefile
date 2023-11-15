@@ -1,10 +1,12 @@
 help:
+	@echo "install - install the package to the user's Python's site-packages"
 	@echo "clean - remove all build, test, coverage and Python artifacts"
 	@echo "lint - check style with flake8"
 	@echo "test - run tests"
-	@echo "deploy - package and upload a release to hashcat01"
+	@echo "deploy - package and upload a release"
 	@echo "release - tag a new release and update changelog"
-	@echo "install - install the package to the user's Python's site-packages"
+	@echo "build - create package"
+	@echo "publish - upload package to PyPI"
 	@echo "help - show this help and exit"
 
 deploy: hashcathelper.pyz
@@ -46,12 +48,18 @@ release:
 	@read -p "Enter version string (Format: x.y.z): " version; \
     echo "Version Bump: $$version"; \
 	date=$$(date +%F); \
-	sed -i "s/^__version__ = '.*'/__version__ = '$$version'/" hashcathelper/_meta.py && \
 	sed -i "s/^## \[Unreleased\]/## [Unreleased]\n\n## [$$version] - $$date/" CHANGELOG.md && \
-	git add CHANGELOG.md hashcathelper/_meta.py && \
+	git add CHANGELOG.md && \
 	git commit -m "Version bump: $$version" && \
 	read -p "Committed. Do you want to tag and push the new version? [y/n] " ans && \
 	if [ $$ans = 'y' ] ; then git tag $$version && git push && git push origin tag $$version && echo "Tagged and pushed." ; else echo "Tag it and push it yourself then." ; fi
 
+build:
+	python -m build
 
-.PHONY: build clean lint test docs deploy install help release
+publish:
+	@file=$$(ls -1t dist/hashcathelper-*.tar.gz | head -n1); \
+	read -p "Ready to upload $$file? Type yes: " ans; \
+	if [ $$ans = 'yes' ] ; then twine upload $$file ; fi
+
+.PHONY: build clean lint test docs deploy install help release publish
