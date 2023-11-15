@@ -132,14 +132,15 @@ To be done; stay tuned.
 Installation
 ------------
 
-The recommended way is to install it like this:
+The recommended way to install this package is to use `pipx` to pull it
+from PyPI:
 
-`$ pip install .`
+```
+$ pipx install hashcathelper
+```
 
-As with any Python package, you can execute it directly without installation
-like this if the current working directory is the root of this repository:
-
-`$ python3 -m hashcathelper`
+As with any other proper Python package, `pip` and virtual environments can
+be used as usual.
 
 Notes
 -----
