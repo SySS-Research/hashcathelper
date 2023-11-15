@@ -344,9 +344,9 @@ def stddev(numbers):
 
 def percentile(x, numbers, higher_is_better=False):
     if higher_is_better:
-        s = sum(n < x for n in numbers)
+        s = sum(n <= x for n in numbers)
     else:
-        s = sum(n > x for n in numbers)
+        s = sum(n >= x for n in numbers)
     result = s/len(numbers)*100
     return int(100*result)/100
 
