@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Avoid printing passwords in log messages
+- HTML output of long tables like clusters
 
 ## [0.1.5] - 2022-08-30
 

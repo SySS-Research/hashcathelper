@@ -163,6 +163,9 @@ class Report(Section):
         .donut-segment {
             stroke: #e28743;
        }
+       table, ul {
+            font-family: monospace;
+       }
       </style>
     """
 
@@ -298,15 +301,12 @@ class LongTable(Table):
     headers = []
 
     def _export_html(self):
-        old = {k: v for k, v in self.items()}
-        new = {k: htmlescape(", ".join(v)) for k, v in self.items()}
-        self.clear()
-        self.update(new)
-        try:
-            return super()._export_html()
-        finally:
-            self.clear()
-            self.update(old)
+        result = '<table>'
+        for k, v in self.items():
+            v = htmlescape(", ".join(v))
+            result += '<tr><td>%s</td><td>%s</td></tr>' % (k, v)
+        result += '</table>'
+        return result
 
     def _export_text(self):
         old = {k: v for k, v in self.items()}
