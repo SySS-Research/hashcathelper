@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sort clusters in details section of analytics report by size
 - Change definition of a percentile from "less than" to "less than or equal"
 
+### Fixed
+
+- Avoid printing passwords in log messages
+
 ## [0.1.5] - 2022-08-30
 
 ### Added

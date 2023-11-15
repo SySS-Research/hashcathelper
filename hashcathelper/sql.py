@@ -1,4 +1,5 @@
 import logging
+import re
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, Float, DateTime
@@ -16,8 +17,8 @@ def get_session(db_uri):
     assert db_uri
     global _session
     if not _session:
-        # TODO remove passwords if present
-        log.info("Connection to database: %s" % db_uri)
+        db_uri_sanitized = re.sub('://(?P<user>[^:]*):[^@]*@', r'://\g<user>:***@', db_uri)
+        log.info("Connection to database: %s" % db_uri_sanitized)
         engine = create_engine(db_uri)
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
