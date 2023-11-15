@@ -75,7 +75,7 @@ different degrees of detail:
 * 1: Only show statistics
 * 2 (default): Show some password information such as top 10 lists
 * 3: Include full credentials of certain accounts, such as which accounts have blank passwords
-* 4: Include a full list of all credentials
+* 4: Include a full list of all credentials and same-password clusters
 
 ### Subcommand "db"
 
