@@ -22,6 +22,14 @@ def domain_filepath_pair(arg):
 
 
 args.append(argument(
+    '-t', '--type',
+    choices=['same_password', 'cracked'],
+    default='same_password',
+    help="type of data to add (`SamePassword` relationships or `cracked` boolean attribute; default: %(default)s)",
+))
+
+
+args.append(argument(
     dest='bloodhound_url',
     help="""
 URL to a Neo4j database containing BloodHound data. Format:
@@ -40,6 +48,34 @@ args.append(argument(
 @subcommand(args)
 def bloodhound(args):
     '''Add 'SamePassword' edges to a BloodHound database'''
+
+    if args.type == 'same_password':
+        add_samepassword_relationships(args)
+    elif args.type == 'cracked':
+        add_cracked_attribute(args)
+
+
+def add_cracked_attribute(args):
+    import json
+
+    from hashcathelper.bloodhound import get_driver, mark_cracked
+
+    users = []
+    for (domain, infile) in args.domain_infile:
+        log.info("Reading file: %s" % infile.name)
+        data = json.load(infile)
+        print(data.keys())
+        if 'full_creds' not in data:
+            log.critical("No information about cracked users found in report file (did you use `--degree-of-detail 4`?)")
+            exit(1)
+
+        users.extend(("%s@%s" % (user, domain)).upper() for user in data['full_creds'].keys())
+
+    driver = get_driver(args.bloodhound_url)
+    mark_cracked(driver, users)
+
+
+def add_samepassword_relationships(args):
     import json
     import collections
 

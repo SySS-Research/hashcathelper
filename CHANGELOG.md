@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option for raw database query
 - Expose `--include-disabled` and `--include-computer-accounts`
 - Show cracked computer accounts in analytics report
+- Add option to `bloodhound` subcommand to mark users as cracked
 
 ### Changed
 

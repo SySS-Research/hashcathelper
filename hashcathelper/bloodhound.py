@@ -114,3 +114,23 @@ def add_many_edges(tx, edges):
     """
     result = tx.run(q, edges=edges)
     return len(result.value())
+
+
+def mark_cracked(driver, users):
+    """Set the attribute `cracked=True` on a list of users"""
+    added = 0
+    with driver.session() as session:
+        added = session.write_transaction(mark_cracked_tx, users)
+
+    log.info("Marked %d users as 'cracked'" % added)
+
+
+def mark_cracked_tx(tx, users):
+    q = """
+    UNWIND $users as user
+    MATCH (u:User {name: user})
+    SET u.cracked = True
+    RETURN u
+    """
+    result = tx.run(q, users=users)
+    return len(result.value())
