@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Progress bar when creating BloodHound relationships
 - Add option for raw database query
 - Expose `--include-disabled` and `--include-computer-accounts`
+- Show cracked computer accounts in analytics report
 
 ### Changed
 

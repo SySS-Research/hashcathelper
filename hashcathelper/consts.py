@@ -3,6 +3,7 @@ labels = dict(
     removed="Accounts removed from analysis",
     accounts="Accounts subject to analysis",
     cracked="Accounts where password was cracked",
+    cracked_computer_accounts="Computer accounts where password was cracked",
     lm_hash_count="Accounts with a non-empty LM hash",
     nonunique="Accounts with nonunique password",
     empty_password="Accounts with a blank password",

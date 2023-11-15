@@ -12,6 +12,7 @@
         1012,
         1312
       ],
+      "cracked_computer_accounts": 0,
       "lm_hash_count": [
         17,
         1312
@@ -1529,6 +1530,7 @@
         "User00994",
         "User00996"
       ]
-    }
+    },
+    "cracked_computer_accounts": []
   }
 }

@@ -336,6 +336,8 @@ def create_report(hashes=None, accounts_plus_passwords=None,
             if u.is_computer_account() and not include_computer_accounts:
                 computer_accounts.append(u)
 
+    cracked_computer_accounts = set(computer_accounts).intersection(accounts_plus_passwords)
+
     # Filter accounts
     log.debug("Filter accounts")
     if filter_accounts:
@@ -360,6 +362,9 @@ def create_report(hashes=None, accounts_plus_passwords=None,
             " At least inactive accounts should be filtered."
         )
     log.debug("Removed %d accounts" % table['removed'])
+
+    # Count cracked computer accounts
+    table['cracked_computer_accounts'] = len(cracked_computer_accounts)
 
     # Count accounts where user==password
     if accounts_plus_passwords:
@@ -417,6 +422,10 @@ def create_report(hashes=None, accounts_plus_passwords=None,
             pw_min_length,
             hibp_db,
         )
+        details += List(
+            'cracked_computer_accounts',
+            cracked_computer_accounts,
+            )
         result += details
 
     if degree_of_detail > 3:
