@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sensible one
 - Sort clusters in details section of analytics report by size
 - Change definition of a percentile from "less than" to "less than or equal"
+- Make port in the BloodHound URL format optional
 
 ### Fixed
 

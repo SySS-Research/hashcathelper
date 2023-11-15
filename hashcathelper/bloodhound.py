@@ -38,16 +38,16 @@ def get_driver(url):
         log.critical("No BloodHound URL given")
         exit(1)
     regex = r'^bolt(?P<encrypted>s?)://(?P<user>[^:]+):(?P<password>.+)@'
-    regex += r'(?P<host>.*):(?P<port>[0-9]+)$'
+    regex += r'(?P<host>[^:]*)(:(?P<port>[0-9]+))?$'
     m = re.match(regex, url)
     if not m:
         log.error("Couldn't parse BloodHound URL: %s" % url)
         exit(1)
 
-    encrypted, user, password, host, port = m.groups()
+    encrypted, user, password, host, _, port = m.groups()
     encrypted = (encrypted == 's')
 
-    url = "bolt://%s:%s" % (host, port)
+    url = "bolt://%s:%s" % (host, port or 7687)
 
     log.debug("Connecting to %s..." % url)
     driver = GraphDatabase.driver(url, auth=(user, password),
