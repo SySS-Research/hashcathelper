@@ -70,7 +70,7 @@ $ hashcathelper analytics \
     -f text -o report.txt
 ```
 
-The report comes as text, HTML, or in JSON. The different sections contain
+The report comes as text, HTML, XLSX, or in JSON. The different sections contain
 different degrees of detail:
 
 * 1: Only show statistics
