@@ -63,10 +63,11 @@ BloodHound database.
 Example:
 
 ```
-$ hashcathelper analytics -f text \
+$ hashcathelper analytics \
     -H dc01.ntds \
     -A dc01.ntds.out \
-    -F kerberoastable_accounts.txt
+    -F kerberoastable_accounts.txt \
+    -f text -o report.txt
 ```
 
 The report comes as text, HTML, or in JSON. The different sections contain
@@ -76,6 +77,9 @@ different degrees of detail:
 * 2 (default): Show some password information such as top 10 lists
 * 3: Include full credentials of certain accounts, such as which accounts have blank passwords or clusters of accounts with the same passwords
 * 4: Include a full list of all credentials
+
+![Example analytics report in text format](doc/txt_report.png)
+
 
 ### Subcommand "db"
 
@@ -198,7 +202,11 @@ Average length of cracked passwords                 8.39    9.58         0.84   
 ```
 
 The last column shows the percentile. It should be read as "this result is
-better than X% of all other results", so higher is better.
+better than X% of all other results", so higher is better. These values can
+be visualized as radar chart using third-party tools:
+
+![Example radar chart](doc/radar.png)
+
 
 ### UPN Suffix
 
