@@ -301,7 +301,8 @@ class LongTable(Table):
     headers = []
 
     def _export_html(self):
-        result = '<table>'
+        result = "<b>%s</b><br/>" % htmlescape(self._title)
+        result += '<table>'
         for k, v in self.items():
             v = htmlescape(", ".join(v))
             result += '<tr><td>%s</td><td>%s</td></tr>' % (k, v)
