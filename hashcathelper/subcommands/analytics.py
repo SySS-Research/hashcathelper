@@ -201,7 +201,7 @@ def save_to_xlsx(report, path):
 
         if isinstance(v, (list, tuple)):
             for i, each in enumerate(v):
-                ws.cell(offset+i+1, 1, each)
+                ws.cell(offset+i+1, 1, str(each))
         elif isinstance(v, (dict, OrderedDict)):
             for i, key in enumerate(v.keys()):
                 cell = ws.cell(offset+1, i+1, key)

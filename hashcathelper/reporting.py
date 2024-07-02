@@ -336,7 +336,7 @@ class Histogram(Element):
             return ""
         out = """
 <svg role="img" aria-label="[%(title)s]" class="chart"
-width="100%%" height="120">
+width="100%%" height="220">
 <title>%(title)s</title>""" % dict(title=htmlescape(self._title))
         bar_template = """
 <g transform="translate(150,%(y)d)">
