@@ -26,6 +26,7 @@ dependencies = [
     'neo4j>=4.2',
     'importlib-metadata',
     'tqdm',
+    'requests'
 ]
 
 [tool.setuptools]
