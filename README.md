@@ -99,7 +99,7 @@ This subcommand lets you insert new relationships into an existing
 [BloodHound](https://github.com/BloodHoundAD/BloodHound) database. It takes
 a BloodHound URI, a report in JSON format (with degree of detail equal to
 three or higher) and the domain name and creates edges between user objects
-that share the same password. This enables you to create graphs like this,
+that share the same password. Both neo4j `bolt://` as well as Bloodhound CE `http://` API URIs are supported. This enables you to create graphs like this,
 which immediately shows you offenders of password reuse among the
 administrator team:
 
@@ -249,4 +249,3 @@ db_uri = sqlite:////home/cracker/.local/share/hashcathelper/stats.sqlite
 # Download here: https://haveibeenpwned.com/Passwords
 hibp_db = /home/cracker/wordlists/pwned-passwords-ntlm-ordered-by-hash-v8.txt
 ```
-
