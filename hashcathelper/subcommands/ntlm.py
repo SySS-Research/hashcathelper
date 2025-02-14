@@ -218,7 +218,7 @@ def check_lm_hashes(filename):
     non-empty LM hash"""
     from hashcathelper.consts import LM_EMPTY
 
-    with open(filename, 'r') as f:
+    with open(filename, "r", newline="\n") as f:
         for line in f.readlines():
             if line.split(':')[2] != LM_EMPTY:
                 return True
