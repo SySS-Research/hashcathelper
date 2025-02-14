@@ -6,39 +6,36 @@ import binascii
 def prcnt(a, b=None):
     """Return percentage rounded to two decimals"""
     if b:
-        return int(a/b * 100 * 100)/100
+        return int(a / b * 100 * 100) / 100
     else:
-        return int(a * 100)/100
+        return int(a * 100) / 100
 
 
 def get_nthash(password):
     """Compute NT hash of password (must be bytes)"""
     from hashcathelper import md4
-    password = password.decode(errors="ignore").encode('utf-16le')
+
+    password = password.decode(errors="ignore").encode("utf-16le")
     result = md4.MD4(password)
     result = result.hexdigest()
     return result
 
 
-USER_REGEX = r'^((?P<upn_suffix>[A-Za-z0-9_\.-]+)\\)?(?P<username>[^:]+)'
-USER_PATTERN = re.compile(USER_REGEX + '$')
+USER_REGEX = r"^((?P<upn_suffix>[A-Za-z0-9_\.-]+)\\)?(?P<username>[^:]+)"
+USER_PATTERN = re.compile(USER_REGEX + "$")
 USER_PATTERN_SUFFIX = re.compile(
-    r'^(?P<username>[^@]+)@(?P<upn_suffix>[A-Za-z0-9_\.-]+)$'
+    r"^(?P<username>[^@]+)@(?P<upn_suffix>[A-Za-z0-9_\.-]+)$"
 )
-USER_PASS_PATTERN = re.compile(USER_REGEX + r':(?P<password>.*)$')
+USER_PASS_PATTERN = re.compile(USER_REGEX + r":(?P<password>.*)$")
 PWDUMP_PATTERN = re.compile(
-    USER_REGEX +
-    r':(?P<id>[0-9]*):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32})'
-    r':::(?P<comment>.*)$'
+    USER_REGEX + r":(?P<id>[0-9]*):(?P<lmhash>[a-f0-9]{32}):(?P<nthash>[a-f0-9]{32})"
+    r":::(?P<comment>.*)$"
 )
-HEX_PATTERN = re.compile(
-    r'^\$HEX\[(?P<hexascii>[a-f0-9]+)\]$'
-)
+HEX_PATTERN = re.compile(r"^\$HEX\[(?P<hexascii>[a-f0-9]+)\]$")
 
 
 class User(object):
-    attributes = 'username upn_suffix id lmhash nthash password comment'\
-            .split()
+    attributes = "username upn_suffix id lmhash nthash password comment".split()
 
     def __init__(self, line):
         self.line = line
@@ -70,7 +67,7 @@ class User(object):
 
         # Set full_username; won't really be used though
         if self.upn_suffix:
-            self.full_username = '%s\\%s' % (
+            self.full_username = "%s\\%s" % (
                 self.upn_suffix,
                 self.username,
             )
@@ -84,16 +81,16 @@ class User(object):
         if self.password:
             m = HEX_PATTERN.search(self.password)
             if m:
-                bin_p = binascii.unhexlify(m.group('hexascii'))
-                self.password = bin_p.decode(errors='ignore')
+                bin_p = binascii.unhexlify(m.group("hexascii"))
+                self.password = bin_p.decode(errors="ignore")
 
     def is_disabled(self):
-        if self.comment and 'status=Disabled' in self.comment:
+        if self.comment and "status=Disabled" in self.comment:
             return True
         return False
 
     def is_computer_account(self):
-        return self.username.endswith('$')
+        return self.username.endswith("$")
 
     def __eq__(self, b):
         if b is None:
@@ -101,8 +98,7 @@ class User(object):
         if isinstance(b, User):
             b = b.username
         if not isinstance(b, str):
-            raise TypeError("Can't compare User object with type %s" %
-                            type(b).__name__)
+            raise TypeError("Can't compare User object with type %s" % type(b).__name__)
         return self.username.lower() == b.lower()
 
     def __hash__(self):
@@ -112,7 +108,7 @@ class User(object):
         return self.full_username
 
     def __repr__(self):
-        return '<User: %s>' % str(self)
+        return "<User: %s>" % str(self)
 
     def as_json(self):
         # needed so this can be serialized by the reporting module
@@ -139,12 +135,12 @@ def line_binary_search(filename, matchvalue, key=lambda val: val, start=0):
 
     # Must be greater than the maximum length of any line.
 
-    max_line_len = 2 ** 8
+    max_line_len = 2**8
 
     pos = start
     end = os.path.getsize(filename)
 
-    with open(filename, 'rb') as fptr:
+    with open(filename, "rb") as fptr:
         # Limit the number of times we binary search.
         for rpt in range(50):
             last = pos
@@ -186,4 +182,4 @@ def line_binary_search(filename, matchvalue, key=lambda val: val, start=0):
                 assert linevalue > matchvalue
                 end = fptr.tell()
         else:
-            raise RuntimeError('binary search failed')
+            raise RuntimeError("binary search failed")

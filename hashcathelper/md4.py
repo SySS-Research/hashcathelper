@@ -74,7 +74,7 @@ class MD4:
         msg += struct.pack("<Q", ml)
 
         # Process the message in successive 512-bit chunks.
-        self._process([msg[i: i + 64] for i in range(0, len(msg), 64)])
+        self._process([msg[i : i + 64] for i in range(0, len(msg), 64)])
 
     def __repr__(self):
         if self.msg:

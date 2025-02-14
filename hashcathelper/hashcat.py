@@ -8,30 +8,39 @@ import tempfile
 
 log = logging.getLogger(__name__)
 
-NT_RULESET = pkgutil.get_data(__name__, 'toggles-lm-ntlm.rule')
+NT_RULESET = pkgutil.get_data(__name__, "toggles-lm-ntlm.rule")
 
 
-def prepend_usernames(wordlists, hashfile, directory='.'):
+def prepend_usernames(wordlists, hashfile, directory="."):
     """Extract usernames from hashfile, write to a temporary file, and
     prepend it to list of wordlists
     """
     from hashcathelper.utils import User
 
     user_file = tempfile.NamedTemporaryFile(
-        delete=False, dir=directory, mode='w',
-        prefix='userlist_',
+        delete=False,
+        dir=directory,
+        mode="w",
+        prefix="userlist_",
     )
-    with open(hashfile, 'r') as fp:
+    with open(hashfile, "r") as fp:
         for line in fp.readlines():
             if line.strip():
                 u = User(line)
-                user_file.write(u.username + '\n')
+                user_file.write(u.username + "\n")
     user_file.close()
     wordlists.insert(0, user_file.name)
 
 
-def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
-            pwonly=True, directory='.'):
+def hashcat(
+    hashcat_bin,
+    hashfile,
+    hashtype,
+    wordlists=[],
+    ruleset=None,
+    pwonly=True,
+    directory=".",
+):
     """
     Run hashcat as a subprocess
 
@@ -41,21 +50,30 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     base_command = [
         hashcat_bin,
         hashfile,
-        '--username',
-        '-m', str(hashtype),
+        "--username",
+        "-m",
+        str(hashtype),
     ]
-    command = base_command + ['--outfile-autohex-disable']
+    command = base_command + ["--outfile-autohex-disable"]
     if wordlists:
         prepend_usernames(wordlists, hashfile, directory=directory)
-        command = command + ['-a', '0'] + wordlists
+        command = command + ["-a", "0"] + wordlists
         # Attack mode wordlist
         if ruleset:
-            command = command + ['-r', ruleset]
+            command = command + ["-r", ruleset]
     else:
         # Attack mode brute force, all combinations of 7 character passwords
         # (This assumes cracking LM hashes)
-        command = command + ['-a', '3', '-i', '?a?a?a?a?a?a?a',
-                             '--increment-min', '1', '--increment-max', '7']
+        command = command + [
+            "-a",
+            "3",
+            "-i",
+            "?a?a?a?a?a?a?a",
+            "--increment-min",
+            "1",
+            "--increment-max",
+            "7",
+        ]
 
     log.debug("Running this command: %s" % command)
     p = subprocess.Popen(
@@ -71,13 +89,18 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
 
     # Retrieve result
     output_file = tempfile.NamedTemporaryFile(
-        delete=False, dir=directory, mode='w', suffix='_show',
+        delete=False,
+        dir=directory,
+        mode="w",
+        suffix="_show",
     )
     output_file.close()
-    show_command = base_command + ['--show']
+    show_command = base_command + ["--show"]
     show_command += [
-        '--outfile-format', '2',
-        '--outfile', output_file.name,
+        "--outfile-format",
+        "2",
+        "--outfile",
+        output_file.name,
     ]
 
     p = subprocess.Popen(
@@ -94,14 +117,17 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     if pwonly:
         # Remove user names
         from hashcathelper.utils import User
+
         output_file_cleaned = tempfile.NamedTemporaryFile(
-            delete=False, dir=directory, mode='w', suffix='pwonly',
+            delete=False,
+            dir=directory,
+            mode="w",
+            suffix="pwonly",
         )
-        with open(output_file.name, 'r',
-                  encoding='utf-8', errors='ignore') as fp:
+        with open(output_file.name, "r", encoding="utf-8", errors="ignore") as fp:
             for line in fp.readlines():
                 u = User(line)
-                output_file_cleaned.write(u.password + '\n')
+                output_file_cleaned.write(u.password + "\n")
         output_file_cleaned.close()
         result = output_file_cleaned.name
     else:
@@ -109,8 +135,9 @@ def hashcat(hashcat_bin, hashfile, hashtype, wordlists=[], ruleset=None,
     return result
 
 
-def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
-                 extra_words=[], skip_lm=False):
+def crack_pwdump(
+    hashcat_bin, hashfile, directory, wordlist, ruleset, extra_words=[], skip_lm=False
+):
     """
     Crack the hashes in a pwdump file.
 
@@ -138,10 +165,10 @@ def crack_pwdump(hashcat_bin, hashfile, directory, wordlist, ruleset,
 
         # Write ruleset to file in tempdir
         nt_ruleset = tempfile.NamedTemporaryFile(
-            'wb',
+            "wb",
             dir=directory,
             delete=False,
-            prefix='rules_',
+            prefix="rules_",
         )
         nt_ruleset.write(NT_RULESET)
         nt_ruleset.close()

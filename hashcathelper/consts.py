@@ -32,8 +32,8 @@ labels = dict(
 )
 
 
-LM_EMPTY = 'aad3b435b51404eeaad3b435b51404ee'
-NT_EMPTY = '31d6cfe0d16ae931b73c59d7e0c089c0'
+LM_EMPTY = "aad3b435b51404eeaad3b435b51404ee"
+NT_EMPTY = "31d6cfe0d16ae931b73c59d7e0c089c0"
 
 # Format: (name, speed factor)
 HASH_TYPES = {
@@ -320,19 +320,19 @@ FAVORITE_HASHTYPES = {
 }
 
 POPULAR_WORDLISTS = [
-    'Bitweasel',
-    'crackstation-human-only.txt',
-    'wikipedia_de-20160629.txt',
-    'wikipedia_en-20160629.txt',
-    'duden_german.txt',
-    'linkedin.dic',
-    '10-million-passwords.txt',
-    'Openwall',
-    'public_leaks/Rockyou_list_original.txt',
+    "Bitweasel",
+    "crackstation-human-only.txt",
+    "wikipedia_de-20160629.txt",
+    "wikipedia_en-20160629.txt",
+    "duden_german.txt",
+    "linkedin.dic",
+    "10-million-passwords.txt",
+    "Openwall",
+    "public_leaks/Rockyou_list_original.txt",
 ]
 
 POPULAR_RULES = [
-    'best64.rule',
-    'dive.rule',
-    'OneRule.rule',
+    "best64.rule",
+    "dive.rule",
+    "OneRule.rule",
 ]
