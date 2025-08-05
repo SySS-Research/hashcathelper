@@ -12,12 +12,15 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    '-v', '--version', action='version',
-    version='hashcathelper %s' % __version__,
+    "-v",
+    "--version",
+    action="version",
+    version="hashcathelper %s" % __version__,
 )
 
 parser.add_argument(
-    '-c', '--config',
+    "-c",
+    "--config",
     type=str,
     help="path to config file; if empty we will try ./hashcathelper.conf"
     " and ${XDG_CONFIG_HOME:-$HOME/.config}/hashcathelper/hashcathelper.conf"
@@ -25,15 +28,15 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-l', '--log-level',
-    choices=['INFO', 'WARNING', 'ERROR', 'DEBUG'],
-    default='INFO',
+    "-l",
+    "--log-level",
+    choices=["INFO", "WARNING", "ERROR", "DEBUG"],
+    default="INFO",
     help="log level (default: %(default)s)",
 )
 
 
-subparsers = parser.add_subparsers(help='choose a sub-command',
-                                   dest='subcommand')
+subparsers = parser.add_subparsers(help="choose a sub-command", dest="subcommand")
 # Keep track of the subparsers we add so we can add subsubparsers
 subparsers_map = {}
 
@@ -59,19 +62,22 @@ def subcommand(args=[], parent=subparsers):
     Then on the command line::
         $ python cli.py subcommand -d
     """
+
     def decorator(func):
         parser = parent.add_parser(func.__name__, description=func.__doc__)
         for arg in args:
             parser.add_argument(*arg[0], **arg[1])
         parser.set_defaults(func=func)
         subparsers_map[func.__name__] = parser
+
     return decorator
 
 
 def parse_args(argv=None):
     from hashcathelper import subcommands
+
     for importer, modname, _ in pkgutil.iter_modules(subcommands.__path__):
-        import_module('..subcommands.' + modname, __name__)
+        import_module("..subcommands." + modname, __name__)
     args = parser.parse_args(argv)
     if not args.subcommand:
         parser.print_help()
@@ -88,21 +94,19 @@ def parse_config(path):
 
     config_parser = configparser.ConfigParser()
     if not path:
-        path = './hashcathelper.conf'
+        path = "./hashcathelper.conf"
         if not os.path.exists(path):
             path = os.path.join(
                 xdg.BaseDirectory.xdg_config_home,
-                'hashcathelper',
-                'hashcathelper.conf',
+                "hashcathelper",
+                "hashcathelper.conf",
             )
     config_parser.read(path)
-    attrs = 'rule wordlist hashcat_bin hash_speed db_uri hibp_db'.split()
+    attrs = "rule wordlist hashcat_bin hash_speed db_uri hibp_db".split()
     for a in attrs:
-        if a not in config_parser['DEFAULT']:
-            log.error('Attribute undefined: ' + a)
-    Config = collections.namedtuple('Config', attrs)
-    config = Config(
-        *[config_parser['DEFAULT'].get(a) for a in attrs]
-    )
+        if a not in config_parser["DEFAULT"]:
+            log.error("Attribute undefined: " + a)
+    Config = collections.namedtuple("Config", attrs)
+    config = Config(*[config_parser["DEFAULT"].get(a) for a in attrs])
 
     return config

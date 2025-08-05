@@ -21,8 +21,7 @@ class ElementEncoder(json.JSONEncoder):
 
 
 class Element(object):
-    def __init__(self, label, title=None,
-                 formats=['json', 'html', 'text']):
+    def __init__(self, label, title=None, formats=["json", "html", "text"]):
         self._label = label
         if title:
             self._title = title
@@ -31,12 +30,12 @@ class Element(object):
         self._formats = formats
 
     def export(self, format):
-        assert format in ['html', 'text', 'json']
+        assert format in ["html", "text", "json"]
         if format not in self._formats:
             return ""
         if self.is_empty():
             return ""
-        f = getattr(self, '_export_%s' % format)
+        f = getattr(self, "_export_%s" % format)
         return f()
 
     def _export_json(self):
@@ -60,7 +59,7 @@ class RelativeQuantity(object):
         return self.numerator
 
     def __str__(self):
-        percentage = int(self.numerator/self.denominator * 100 * 100)/100
+        percentage = int(self.numerator / self.denominator * 100 * 100) / 100
         result = "%s (%d%%)" % (self.numerator, percentage)
         return result
 
@@ -86,7 +85,7 @@ class Section(Element):
             level=self._level,
         )
         for e in self._elements.values():
-            result += e.export('html')
+            result += e.export("html")
         return result
 
     def _export_text(self):
@@ -96,7 +95,7 @@ class Section(Element):
             chars[self._level] * len(self._title),
         )
         for e in self._elements.values():
-            result += e.export('text')
+            result += e.export("text")
         return result
 
     def as_json(self):
@@ -169,9 +168,12 @@ class Report(Section):
       </style>
     """
 
-    HEADER = """
+    HEADER = (
+        """
     <html><head><title>Hashcat Helper Report</title>%s</head><body>
-        """ % CSS
+        """
+        % CSS
+    )
 
     FOOTER = "</body></html>"
 
@@ -182,17 +184,15 @@ class Report(Section):
     def _export_html(self):
         result = self.HEADER
         for e in self._elements.values():
-            result += e.export('html')
+            result += e.export("html")
         result += self.FOOTER
         return result
 
     def _export_text(self):
-        rule = '='*(len(self._title) + 1)
-        result = "%s\n%s\n%s\n\n" % (
-            rule, self._title, rule
-        )
+        rule = "=" * (len(self._title) + 1)
+        result = "%s\n%s\n%s\n\n" % (rule, self._title, rule)
         for e in self._elements.values():
-            result += e.export('text')
+            result += e.export("text")
         return result
 
 
@@ -251,15 +251,18 @@ class Table(OrderedDict, Element):
 """
         if isinstance(value, RelativeQuantity):
             # RelativeQuantity, draw a donut section
-            percent = int(value.numerator/value.denominator*100)
+            percent = int(value.numerator / value.denominator * 100)
             inner = donut_section % dict(
                 percent=percent,
-                remaining=100-percent,
+                remaining=100 - percent,
                 center="%s%%" % percent,
             )
             quantity = '<div class="card-quantity">%s</div>' % inner
         else:
-            quantity = '<div class="card-quantity"><div class="pure-number">%s</div></div>' % value
+            quantity = (
+                '<div class="card-quantity"><div class="pure-number">%s</div></div>'
+                % value
+            )
 
         label = labels.get(label, label)
         label = '<div class="card-label">%s</div>' % label
@@ -271,23 +274,22 @@ class Table(OrderedDict, Element):
         if not self:
             return ""
         cards = [self._html_card(k, v) for k, v in self.items()]
-        result = '<div class="card-collection">%s</div>' % '\n'.join(cards)
+        result = '<div class="card-collection">%s</div>' % "\n".join(cards)
         return result
 
     def _export_text(self):
         if not self:
             return ""
         data = OrderedDict(
-            (str(labels.get(label, label)), value)
-            for label, value in self.items()
+            (str(labels.get(label, label)), value) for label, value in self.items()
         )
         max_len = max(len(x) for x in data)
         out = self._title + "\n"
         rows = [
-            "    %s%s%s\n" % (label, ' '*(max_len+2-len(label)), value)
+            "    %s%s%s\n" % (label, " " * (max_len + 2 - len(label)), value)
             for label, value in data.items()
         ]
-        out += ''.join(rows)
+        out += "".join(rows)
         return out + "\n"
 
     def as_json(self):
@@ -302,11 +304,11 @@ class LongTable(Table):
 
     def _export_html(self):
         result = "<b>%s</b><br/>" % htmlescape(self._title)
-        result += '<table>'
+        result += "<table>"
         for k, v in self.items():
             v = htmlescape(", ".join(v))
-            result += '<tr><td>%s</td><td>%s</td></tr>' % (k, v)
-        result += '</table>'
+            result += "<tr><td>%s</td><td>%s</td></tr>" % (k, v)
+        result += "</table>"
         return result
 
     def _export_text(self):
@@ -349,24 +351,27 @@ width="100%%" height="220">
         maxval = max(self._data.values())
         y = 0
         for k, v in self._data.items():
-            if k == '':
-                k = '<BLANK>'
-            width_px = int(self.html_width * v/maxval)
+            if k == "":
+                k = "<BLANK>"
+            width_px = int(self.html_width * v / maxval)
             row = dict(
                 text=htmlescape(str(k)),
                 width=width_px,
                 y=y,
                 labelpos=-2,
-                numberpos=width_px+2,
+                numberpos=width_px + 2,
                 number=v,
             )
-            out += (bar_template % row)
+            out += bar_template % row
             y += 20
 
         out += "</svg>"
-        out = "<figure>" + (
-            "<figcaption><b>%s</b></figcaption>" % htmlescape(self._title)
-        ) + out + "</figure>"
+        out = (
+            "<figure>"
+            + ("<figcaption><b>%s</b></figcaption>" % htmlescape(self._title))
+            + out
+            + "</figure>"
+        )
         return out
 
     def _export_text(self):
@@ -376,32 +381,32 @@ width="100%%" height="220">
         maxval = max(self._data.values())
         maxwidth = max([len(str(k)) for k in self._data.keys()])
         blocks = [
-            '',        # 0/8
-            '\u258F',  # 1/8
-            '\u258E',  # 2/8
-            '\u258D',  # 3/8
-            '\u258C',  # 4/8
-            '\u258B',  # 5/8
-            '\u258A',  # 6/8
-            '\u2589',  # 7/8
-            '\u2588',  # 8/8
+            "",  # 0/8
+            "\u258f",  # 1/8
+            "\u258e",  # 2/8
+            "\u258d",  # 3/8
+            "\u258c",  # 4/8
+            "\u258b",  # 5/8
+            "\u258a",  # 6/8
+            "\u2589",  # 7/8
+            "\u2588",  # 8/8
         ]
 
         result = ""
         if self._title:
-            result += self._title + '\n'
+            result += self._title + "\n"
         for k, v in self._data.items():
-            if k == '':
-                k = '<BLANK>'
-            line = ' '*self.text_indent
-            line += ' '*(maxwidth - len(str(k))) + str(k) + ' '
-            length = v/maxval * self.text_width
+            if k == "":
+                k = "<BLANK>"
+            line = " " * self.text_indent
+            line += " " * (maxwidth - len(str(k))) + str(k) + " "
+            length = v / maxval * self.text_width
             rounded = int(length)
             remainder = int(round((length - rounded) * 8))
-            line += blocks[-1]*rounded + blocks[remainder]
+            line += blocks[-1] * rounded + blocks[remainder]
             if isinstance(v, int):
-                line += ' %d' % v
-            result += line + '\n'
+                line += " %d" % v
+            result += line + "\n"
 
         return result + "\n"
 

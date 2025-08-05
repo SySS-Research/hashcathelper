@@ -17,7 +17,9 @@ def get_session(db_uri):
     assert db_uri
     global _session
     if not _session:
-        db_uri_sanitized = re.sub('://(?P<user>[^:]*):[^@]*@', r'://\g<user>:***@', db_uri)
+        db_uri_sanitized = re.sub(
+            "://(?P<user>[^:]*):[^@]*@", r"://\g<user>:***@", db_uri
+        )
         log.info("Connection to database: %s" % db_uri_sanitized)
         engine = create_engine(db_uri)
         Base.metadata.create_all(engine)
