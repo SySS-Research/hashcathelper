@@ -135,6 +135,15 @@ args.append(
     )
 )
 
+args.append(
+    argument(
+        "-c",
+        "--pw-complexity",
+        default=False,
+        action="store_true",
+        help="show passwords that do not satisfy AD password complexity requirements",
+    )
+)
 
 args.append(
     argument(
@@ -176,6 +185,7 @@ def analytics(args):
         filter_accounts + bh_users,
         degree_of_detail=args.degree_of_detail,
         pw_min_length=args.pw_min_length,
+        pw_complexity=args.pw_complexity,
         include_disabled=args.include_disabled,
         include_computer_accounts=args.include_computer_accounts,
         hibp_db=config.hibp_db,

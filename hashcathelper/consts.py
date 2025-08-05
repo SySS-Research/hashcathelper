@@ -27,6 +27,7 @@ labels = dict(
     clusters="Clusters",
     user_similarto_password="Accounts where username is similar to password",
     short_password="Accounts with short passwords",
+    password_not_complex="Accounts where password does not satisfy AD password complexity requirements",
     full_creds="Full credentials",
     hibp_accounts="Accounts whose hash is known to HIBP",
 )

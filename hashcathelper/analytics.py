@@ -92,27 +92,28 @@ def get_top_basewords(passwords, n=10):
 
 
 def get_char_classes(passwords):
-    def get_character_classes(s):
-        upper = False
-        lower = False
-        digits = False
-        chars = False
-        if re.search("[A-Z]", s):
-            upper = True
-        if re.search("[a-z]", s):
-            lower = True
-        if re.search("[0-9]", s):
-            digits = True
-        if re.search("[^A-Za-z0-9]", s):
-            chars = True
-        result = sum([upper, lower, digits, chars])
-        return result
-
     counts = collections.Counter()
     for p in passwords:
         classes = get_character_classes(p)
         counts.update([classes])
     return counts
+
+
+def get_character_classes(password):
+    upper = False
+    lower = False
+    digits = False
+    chars = False
+    if re.search("[A-Z]", password):
+        upper = True
+    if re.search("[a-z]", password):
+        lower = True
+    if re.search("[0-9]", password):
+        digits = True
+    if re.search("[^A-Za-z0-9]", password):
+        chars = True
+    result = sum([upper, lower, digits, chars])
+    return result
 
 
 def load_lines(path, as_user=True):
@@ -286,6 +287,7 @@ def create_report(
     passwords=None,
     filter_accounts=[],
     pw_min_length=6,
+    pw_complexity=False,
     degree_of_detail=1,
     include_disabled=False,
     include_computer_accounts=False,
@@ -423,6 +425,7 @@ def create_report(
             hashes,
             accounts_plus_passwords,
             pw_min_length,
+            pw_complexity,
             hibp_db,
         )
         details += List(
@@ -453,11 +456,14 @@ def gather_creds(hashes, accounts_plus_passwords):
     return creds
 
 
-def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
+def gather_details(
+    hashes, accounts_plus_passwords, pw_min_length, pw_complexity, hibp_db
+):
     """Return a dictionary with details about the report
 
     Contains:
         * list of accounts with short passwords
+        * list of accounts where password does not meet AD complexity requirements
         * list of accounts where usename equals password (case insensitive)
         * list of accounts where usename is similar to password (starts or
           ends with password, case insensitive)
@@ -468,12 +474,17 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
         "short_password",
         collections.OrderedDict((i, []) for i in range(pw_min_length)),
     )
+    if pw_complexity:
+        password_not_complex = List("password_not_complex", [])
     user_equals_password = List("user_equals_password", [])
     user_similarto_password = List("user_similarto_password", [])
 
     for u in accounts_plus_passwords:
         if len(u.password) < pw_min_length:
             short_password[len(u.password)].append(u.username)
+        if pw_complexity:
+            if not password_satisfies_complexity_requirements(u.username, u.password):
+                password_not_complex.append(u.username)
         if u.username.lower() == u.password.lower():
             user_equals_password.append(u.username)
         elif u.password and (
@@ -516,6 +527,8 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
     details += user_equals_password
     details += user_similarto_password
     details += short_password
+    if pw_complexity:
+        details += password_not_complex
     if hibp_db:
         try:
             details += get_hibp(hashes, hibp_db)
@@ -524,6 +537,20 @@ def gather_details(hashes, accounts_plus_passwords, pw_min_length, hibp_db):
     else:
         log.error("No HIBP database defined; skipping this detail")
     return details
+
+
+def password_satisfies_complexity_requirements(samaccountname, password):
+    """
+    Check, whether given password satisfies complexity requirements listed in
+    https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh994562(v=ws.11)
+    """
+
+    if samaccountname.lower() in password.lower():
+        return False
+
+    # Displayname requirements are ignored since that data is not available here.
+
+    return get_character_classes(password) >= 3
 
 
 def cluster_analysis(table, values, empty=""):
