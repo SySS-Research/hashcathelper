@@ -38,8 +38,8 @@ args.append(
     argument(
         dest="bloodhound_url",
         help="""
-URL to a Neo4j database containing BloodHound data. Format:
-bolt[s]://<user>:<password>@<host>[:<port>]""",
+URL to a Neo4j database containing BloodHound data (bolt scheme) or to a BloodHound CE API (http scheme). Format:
+<scheme>://<user>:<password>@<host>[:<port>]""",
     )
 )
 
