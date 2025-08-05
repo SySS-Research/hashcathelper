@@ -55,6 +55,7 @@ def get_driver(url):
     else:
         log.error("Unknown Protocol: %s" % protocol)
         exit(1)
+    return driver
 
 
 def query_neo4j(driver, cypher_query, domain=None):
@@ -63,6 +64,10 @@ def query_neo4j(driver, cypher_query, domain=None):
     If given, filter for domain and return `User()` objects.
     """
     from hashcathelper.utils import User
+
+    if (type(driver) == bloodhound_ce.driver):
+        log.error("Direct queries to Bloodhound CE are currently not supported.")
+        exit(1)
 
     log.debug("Given Cypher query: %s" % cypher_query)
     log.info("Querying BloodHound database...")
@@ -110,7 +115,13 @@ def add_many_edges(tx, edges):
     # Is it the new Bloodhound CE?
     is_bloodhound_ce = (type(tx) == bloodhound_ce.Sender)
     if is_bloodhound_ce:
-        q = """MATCH (a:User), (b:User) WHERE a.name = toUpper(\"{a}\") AND b.name = toUpper(\"{b}\") CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a) RETURN r"""
+        q = """
+        MATCH (a:User), (b:User)
+        WHERE a.name = toUpper(\"{a}\")
+        AND b.name = toUpper(\"{b}\")
+        CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a)
+        RETURN r
+        """
         result = tx.run(q, edges=edges)
         return result
     else:
@@ -135,15 +146,21 @@ def mark_cracked(driver, users):
     log.info("Marked %d users as 'cracked'" % added)
 
 
-# Old neo4j Query
 def mark_cracked_tx(tx, users):
     # Is it the new Bloodhound CE?
     is_bloodhound_ce = (type(tx) == bloodhound_ce.Sender)
     if is_bloodhound_ce:
-        q = """MATCH (u) WHERE toLower(u.name) = toLower(\"{user}\") SET u.cracked = True RETURN u"""
+        # New Bloodhound CE query
+        q = """
+        MATCH (u)
+        WHERE toLower(u.name) = toLower(\"{user}\")
+        SET u.cracked = True
+        RETURN u
+        """
         result = tx.run(q, users=users)
         return result
     else:
+        # Old neo4j Query
         q = """
         UNWIND $users as user
         MATCH (u:User {name: user})
