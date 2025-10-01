@@ -1,4 +1,5 @@
 import logging
+import hashcathelper.bloodhound_ce as bloodhound_ce
 
 from neo4j import GraphDatabase
 
@@ -32,21 +33,28 @@ def get_driver(url):
     if not url:
         log.critical("No BloodHound URL given")
         exit(1)
-    regex = r"^bolt(?P<encrypted>s?)://(?P<user>[^:]+):(?P<password>.+)@"
+    regex = r"^(?P<protocol>[a-z]{4})(?P<encrypted>s?)://(?P<user>[^:]+):(?P<password>.+)@"
     regex += r"(?P<host>[^:]*)(:(?P<port>[0-9]+))?$"
     m = re.match(regex, url)
     if not m:
         log.error("Couldn't parse BloodHound URL: %s" % url)
         exit(1)
 
-    encrypted, user, password, host, _, port = m.groups()
+    protocol, encrypted, user, password, host, _, port = m.groups()
     encrypted = encrypted == "s"
 
-    url = "bolt://%s:%s" % (host, port or 7687)
+    url = "%s://%s:%s" % (protocol, host, port or 7687)
 
     log.debug("Connecting to %s..." % url)
-    driver = GraphDatabase.driver(url, auth=(user, password), encrypted=encrypted)
-
+    if protocol == "bolt":
+        # BOLT protocol for old Bloodhound
+        driver = GraphDatabase.driver(url, auth=(user, password), encrypted=encrypted)
+    elif protocol == "http":
+        # HTTP protocol for Bloodhound CE API
+        driver = bloodhound_ce.driver(url, auth=(user, password))
+    else:
+        log.error("Unknown Protocol: %s" % protocol)
+        exit(1)
     return driver
 
 
@@ -56,6 +64,10 @@ def query_neo4j(driver, cypher_query, domain=None):
     If given, filter for domain and return `User()` objects.
     """
     from hashcathelper.utils import User
+
+    if (type(driver) == bloodhound_ce.driver):
+        log.error("Direct queries to Bloodhound CE are currently not supported.")
+        exit(1)
 
     log.debug("Given Cypher query: %s" % cypher_query)
     log.info("Querying BloodHound database...")
@@ -100,16 +112,29 @@ def add_edges(driver, clusters):
 
 
 def add_many_edges(tx, edges):
-    q = """
-    UNWIND $edges as edge
-    MATCH (a:User), (b:User)
-    WHERE a.name = toUpper(edge.a)
-    AND b.name = toUpper(edge.b)
-    CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a)
-    RETURN r
-    """
-    result = tx.run(q, edges=edges)
-    return len(result.value())
+    # Is it the new Bloodhound CE?
+    is_bloodhound_ce = (type(tx) == bloodhound_ce.Sender)
+    if is_bloodhound_ce:
+        q = """
+        MATCH (a:User), (b:User)
+        WHERE a.name = toUpper(\"{a}\")
+        AND b.name = toUpper(\"{b}\")
+        CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a)
+        RETURN r
+        """
+        result = tx.run(q, edges=edges)
+        return result
+    else:
+        q = """
+        UNWIND $edges as edge
+        MATCH (a:User), (b:User)
+        WHERE a.name = toUpper(edge.a)
+        AND b.name = toUpper(edge.b)
+        CREATE (a)-[r:SamePassword]->(b), (b)-[k:SamePassword]->(a)
+        RETURN r
+        """
+        result = tx.run(q, edges=edges)
+        return len(result.value())
 
 
 def mark_cracked(driver, users):
@@ -122,11 +147,25 @@ def mark_cracked(driver, users):
 
 
 def mark_cracked_tx(tx, users):
-    q = """
-    UNWIND $users as user
-    MATCH (u:User {name: user})
-    SET u.cracked = True
-    RETURN u
-    """
-    result = tx.run(q, users=users)
-    return len(result.value())
+    # Is it the new Bloodhound CE?
+    is_bloodhound_ce = (type(tx) == bloodhound_ce.Sender)
+    if is_bloodhound_ce:
+        # New Bloodhound CE query
+        q = """
+        MATCH (u)
+        WHERE toLower(u.name) = toLower(\"{user}\")
+        SET u.cracked = True
+        RETURN u
+        """
+        result = tx.run(q, users=users)
+        return result
+    else:
+        # Old neo4j Query
+        q = """
+        UNWIND $users as user
+        MATCH (u:User {name: user})
+        SET u.cracked = True
+        RETURN u
+        """
+        result = tx.run(q, users=users)
+        return len(result.value())
